@@ -2,6 +2,9 @@ spring:
   application:
     name: api-gateway
 
+  main:
+    web-application-type: reactive
+
   data:
     redis:
       host: localhost
@@ -9,43 +12,45 @@ spring:
 
   cloud:
     gateway:
-      routes:
+      server:
+        webflux:
+          routes:
 
-        # Account Service routes
-        - id: account-service
-          uri: http://localhost:8081
-          predicates:
-            - Path=/api/v1/account/**
-          filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
-                key-resolver: "#{@userKeyResolver}"
+            # Account Service
+            - id: account-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/v1/accounts/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
+                    key-resolver: "#{@userKeyResolver}"
 
-        # Transaction Service routes
-        - id: transaction-service
-          uri: http://localhost:8082
-          predicates:
-            - Path=/api/v1/transactions/**
-          filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
-                key-resolver: "#{@userKeyResolver}"
+            # Transaction Service
+            - id: transaction-service
+              uri: http://localhost:8082
+              predicates:
+                - Path=/api/v1/transactions/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
+                    key-resolver: "#{@userKeyResolver}"
 
-        # Payment Service routes
-        - id: payment-service
-          uri: http://localhost:8083
-          predicates:
-            - Path=/api/v1/payments/**
-          filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 10
-                key-resolver: "#{@userKeyResolver}"
+            # Payment Service
+            - id: payment-service
+              uri: http://localhost:8083
+              predicates:
+                - Path=/api/v1/payments/**
+              filters:
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 5
+                    redis-rate-limiter.burstCapacity: 10
+                    key-resolver: "#{@userKeyResolver}"
 
 server:
   port: 8080
@@ -54,4 +59,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,gateway
+  endpoint:
+    gateway:
+      access: read-only
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: INFO

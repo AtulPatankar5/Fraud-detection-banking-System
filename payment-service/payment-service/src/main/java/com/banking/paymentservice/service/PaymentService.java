@@ -66,7 +66,7 @@ public class PaymentService {
 //        1. Create Order in razorPay
         JSONObject orderRequest = new JSONObject();
         orderRequest.put("amount", convertedAmount);
-        orderRequest.put("currency", "USD/INR");
+        orderRequest.put("currency", "USD");
         orderRequest.put("receipt", "rcpt_" + System.currentTimeMillis() + UUID.randomUUID().toString().
                 replace("-", "").substring(0, 10));
 
@@ -81,7 +81,7 @@ public class PaymentService {
         payment.setId(razorpayOrder.get("id").toString());
         payment.setAccountNumber(request.getAccountNumber());
         payment.setAmount(request.getAmount());
-        payment.setCurrency("USD/INR");
+        payment.setCurrency("USD");
         payment.setStatus(PaymentStatus.CREATED);
         payment.setDescription(request.getDescription());
 
@@ -94,7 +94,7 @@ public class PaymentService {
                 savedPayment.getId(),
                 razorPayOrder.get("id").toString(),
                 savedPayment.getAmount(),
-                "USD/INR",
+                "USD",
                 "CREATED",
                 keyId
         );

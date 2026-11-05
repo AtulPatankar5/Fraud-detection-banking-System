@@ -34,7 +34,7 @@ public class TransactionResponse {
 
     private String referenceNumber;
 
-    private LocalDateTime creationAt;
+    private LocalDateTime createdAt;
 
     private LocalDateTime completedAt;
 

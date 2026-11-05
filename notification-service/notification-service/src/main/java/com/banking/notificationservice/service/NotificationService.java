@@ -1,3 +1,4 @@
+
 package com.banking.notificationservice.service;
 
 import lombok.extern.slf4j.Slf4j;
@@ -11,100 +12,174 @@ import java.util.Map;
 @Slf4j
 public class NotificationService {
 
-    // received from Transaction Service with OTP
+    // Safely converts String, Integer, Double, BigDecimal, etc. to String.
+    private String getValue(Map<String, Object> payload, String key) {
+        Object value = payload.get(key);
+        return value == null ? "" : value.toString();
+    }
+
+    // OTP generated notification
     @KafkaListener(topics = "transaction.otp.generated")
     public void consumeOtpGenerated(@Payload Map<String, Object> payload) {
         try {
+            String accountNumber = getValue(payload, "accountNumber");
+            String otp = getValue(payload, "otp");
+            String amount = getValue(payload, "amount");
+            String transactionId = getValue(payload, "transactionId");
+            String reason = getValue(payload, "reason");
 
-            String accountNumber = (String) payload.get("accountNumber");
-            String otp = (String) payload.get("otp");
-            String amount = (String) payload.get("amount");
-            String transactionId = (String) payload.get("transactionId");
-            String reason = (String) payload.get("reason");
+            String message = String.format(
+                    "Suspicious activity detected on your account. " +
+                            "Reason: %s. " +
+                            "Transaction of %s is pending. " +
+                            "Your OTP is %s and is valid for 5 minutes. " +
+                            "Transaction ID: %s. " +
+                            "If this wasn't you, please contact support.",
+                    reason, amount, otp, transactionId
+            );
 
-            // sent to user to Enter and verify OTP
-            sendAlert(accountNumber, "TRANSACTION_VERIFICATION_REQUIRED", String.format("Suspicious Activity Detected on your account." + "Reason is %s ." + "Transaction of %s is pending." + "Your OTP is %s and valid for 5 minutes." + "If this wasn't you then ignore this message"));
-
+            sendAlert(accountNumber,
+                    "TRANSACTION VERIFICATION REQUIRED", message);
 
         } catch (Exception e) {
-            log.error("error sending OTP notification , {}", e.getMessage());
+            log.error("Error sending OTP notification", e);
         }
-
     }
 
+    // Transaction completed notification
     @KafkaListener(topics = "transaction.completed")
-    public void consumeTransactionCompleted(@Payload Map<String, Object> payload) {
+    public void consumeTransactionCompleted(
+            @Payload Map<String, Object> payload) {
         try {
-            String senderAccountNumber = (String) payload.get("senderAccountNumber");
-            String receiverAccountNumber = (String) payload.get("receiverAccountNumber");
-            String amount = (String) payload.get("amount");
-            //debit alert
-            sendAlert(senderAccountNumber, "DEBIT ALERT", String.format("%s debited from account %s", amount, senderAccountNumber));
+            String senderAccountNumber = getValue(payload, "senderAccountNumber") != null ? getValue(payload, "senderAccountNumber") : getValue(payload, "accountNumber");
 
-            //credit Alert
-            sendAlert(senderAccountNumber, "CREDIT ALERT", String.format("%s credited in account %s", amount, receiverAccountNumber));
+            String receiverAccountNumber =
+                    getValue(payload, "receiverAccountNumber");
+
+            String amount = getValue(payload, "amount");
+
+            // Debit alert
+            sendAlert(
+                    senderAccountNumber,
+                    "DEBIT ALERT",
+                    String.format("%s debited from account %s",
+                            amount, senderAccountNumber)
+            );
+
+            // Credit alert
+            sendAlert(
+                    receiverAccountNumber,
+                    "CREDIT ALERT",
+                    String.format("%s credited to account %s",
+                            amount, receiverAccountNumber)
+            );
+
         } catch (Exception e) {
-            log.error("ERROR sending OTP notification , {}", e.getMessage());
+            log.error("Error sending transaction notification", e);
         }
     }
 
+    // Fraud detected notification
     @KafkaListener(topics = "fraud.detected")
-    public void consumefraudDetected(@Payload Map<String, Object> payload) {
-
+    public void consumeFraudDetected(
+            @Payload Map<String, Object> payload) {
         try {
-            String senderAccountNumber = (String) payload.get("senderAccountNumber");
-            String reason = (String) payload.get("reason");
+            String senderAccountNumber = getValue(payload, "senderAccountNumber") != null ? getValue(payload, "senderAccountNumber") : getValue(payload, "accountNumber");
 
-            sendAlert(senderAccountNumber, "SUSPICIOS ACTIVITY DETECTED", String.format("%s has been blocked. " + "Reason: %s", senderAccountNumber, reason));
+            String reason = getValue(payload, "reason");
+
+            sendAlert(
+                    senderAccountNumber,
+                    "SUSPICIOUS ACTIVITY DETECTED",
+                    String.format("%s has been blocked. Reason: %s",
+                            senderAccountNumber, reason)
+            );
 
         } catch (Exception e) {
-            log.error("ERROR sending fraud alert notification , {}", e.getMessage());
+            log.error("Error sending fraud alert notification", e);
         }
     }
 
-
+    // Transaction refunded notification
     @KafkaListener(topics = "transaction.refunded")
-    public void consumeTransactionRefunded(@Payload Map<String, Object> payload) {
-
+    public void consumeTransactionRefunded(
+            @Payload Map<String, Object> payload) {
         try {
-            String senderAccountNumber = (String) payload.get("senderAccountNumber");
-            String amount = (String) payload.get("amount");
-            String reason = (String) payload.get("reason");
+            String senderAccountNumber = getValue(payload, "senderAccountNumber") != null ? getValue(payload, "senderAccountNumber") : getValue(payload, "accountNumber");
 
-            sendAlert(senderAccountNumber, "REFUND PROCESSED", String.format("Your transaction of %s was cancelled." + "Reason: %s" + "%s has been refunded to account %s", amount, reason, amount, senderAccountNumber));
+            String amount = getValue(payload, "amount");
+            String reason = getValue(payload, "reason");
+
+            String message = String.format(
+                    "Your transaction of %s was cancelled. " +
+                            "Reason: %s. " +
+                            "%s has been refunded to account %s.",
+                    amount, reason, amount, senderAccountNumber
+            );
+
+            sendAlert(
+                    senderAccountNumber,
+                    "REFUND PROCESSED",
+                    message
+            );
+
         } catch (Exception e) {
-            log.error("ERROR sending refund notification , {}", e.getMessage());
+            log.error("Error sending refund notification", e);
         }
     }
 
+    // Payment completed notification
     @KafkaListener(topics = "payment.completed")
-    public void consumePaymentCompleted(@Payload Map<String, Object> payload) {
-
+    public void consumePaymentCompleted(
+            @Payload Map<String, Object> payload) {
         try {
-            String accountNumber = (String) payload.get("accountNumber");
-            String amount = (String) payload.get("amount");
-            String razorpayPaymentId = (String) payload.get("razorpayPaymentId");
+            String accountNumber = getValue(payload, "accountNumber");
+            String amount = getValue(payload, "amount");
+            String razorpayPaymentId =
+                    getValue(payload, "razorpayPaymentId");
 
-            sendAlert(accountNumber, "PAYMENT SUCCESSFUL", String.format("Payment of %s completed." + "RazorPay Id: %s  ", amount, razorpayPaymentId));
+            sendAlert(
+                    accountNumber,
+                    "PAYMENT SUCCESSFUL",
+                    String.format(
+                            "Payment of %s completed successfully. Razorpay ID: %s",
+                            amount, razorpayPaymentId
+                    )
+            );
+
         } catch (Exception e) {
-            log.error("ERROR sending payment complete notification , {}", e.getMessage());
+            log.error("Error sending payment completion notification", e);
         }
     }
 
+    // Payment failed notification
     @KafkaListener(topics = "payment.failed")
-    public void consumePaymentFailed(@Payload Map<String, Object> payload) {
-
+    public void consumePaymentFailed(
+            @Payload Map<String, Object> payload) {
         try {
-            String accountNumber = (String) payload.get("accountNumber");
-            String amount = (String) payload.get("amount");
+            String accountNumber = getValue(payload, "accountNumber");
+            String amount = getValue(payload, "amount");
 
-            sendAlert(accountNumber, "PAYMENT FAILED", String.format("Your payment of  %s could not be processed." + "Please try again or contact admin", amount));
+            sendAlert(
+                    accountNumber,
+                    "PAYMENT FAILED",
+                    String.format(
+                            "Your payment of %s could not be processed. " +
+                                    "Please try again or contact support.",
+                            amount
+                    )
+            );
+
         } catch (Exception e) {
-            log.error("ERROR sending payment failure notification , {}", e.getMessage());
+            log.error("Error sending payment failure notification", e);
         }
     }
 
-    private void sendAlert(String accountNumber, String subject, String message) {
+    // Common notification method
+    private void sendAlert(
+            String accountNumber,
+            String subject,
+            String message) {
 
         log.info("--------------------------------");
         log.info("Account Number: {}", accountNumber);

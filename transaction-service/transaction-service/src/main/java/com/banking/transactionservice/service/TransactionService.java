@@ -50,7 +50,6 @@ public class TransactionService {
      * @param transferRequest
      * @return
      */
-    @Transactional
     public TransactionResponse transfer(TransferRequest transferRequest) {
 
         log.info("SAGA Starts - Transfer from {} -> {} and  amount {}",
@@ -100,7 +99,7 @@ public class TransactionService {
         transactionResponse.setType(transaction.getType());
         transactionResponse.setReferenceNumber(transaction.getReferenceNumber());
         transactionResponse.setCompletedAt(transaction.getCompletedAt());
-        transactionResponse.setCreationAt(transaction.getCreationAt());
+        transactionResponse.setCreatedAt(transaction.getCreatedAt());
         transactionResponse.setFailureReason(transaction.getFailureReason());
 
         return transactionResponse;
@@ -129,6 +128,7 @@ public class TransactionService {
 
         String otpKey = "verification:otp" + transactionId;
         String storedOtp = redisTemplate.opsForValue().get(otpKey);
+        log.info("Stored OTP: {}", storedOtp);
         // OTP Expired
         if (storedOtp == null) {
             log.warn("No OTP found or OTP expired for transaction {}", transactionId);
