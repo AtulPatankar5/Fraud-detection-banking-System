@@ -1,0 +1,205 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 960" width="100%" height="100%" style="background:#0b1120; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    
+    <marker id="arrBlue" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#38bdf8"/>
+    </marker>
+    <marker id="arrGreen" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#34d399"/>
+    </marker>
+    <marker id="arrOrange" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#fb923c"/>
+    </marker>
+    <marker id="arrRed" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#f87171"/>
+    </marker>
+    <marker id="arrPurple" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#c084fc"/>
+    </marker>
+  </defs>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1400" height="85" fill="#0f172a"/>
+  <line x1="0" y1="85" x2="1400" y2="85" stroke="#1e293b" stroke-width="2"/>
+  <text x="50" y="38" fill="#38bdf8" font-size="12" font-weight="700" letter-spacing="1.5">END-TO-END EVENT FLOW • SAGA ORCHESTRATION &amp; CHOREOGRAPHY</text>
+  <text x="50" y="66" fill="#f8fafc" font-size="22" font-weight="800">Complete Transaction Flow: Request ➔ Kafka ➔ Redis ➔ Settlement</text>
+
+  <!-- ==================== ACTOR / SERVICE LIFELINES ==================== -->
+  
+  <!-- Column Headers -->
+  <!-- 1. Client -->
+  <g transform="translate(60, 110)">
+    <rect x="0" y="0" width="110" height="44" rx="8" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+    <text x="55" y="27" fill="#f8fafc" font-size="13" font-weight="700" text-anchor="middle">👤 Client</text>
+    <line x1="55" y1="44" x2="55" y2="810" stroke="#334155" stroke-width="1.5" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- 2. Gateway -->
+  <g transform="translate(210, 110)">
+    <rect x="0" y="0" width="130" height="44" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1.5"/>
+    <text x="65" y="27" fill="#c7d2fe" font-size="13" font-weight="700" text-anchor="middle">🛡️ Gateway</text>
+    <line x1="65" y1="44" x2="65" y2="810" stroke="#3730a3" stroke-width="1.5" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- 3. Transaction Service -->
+  <g transform="translate(380, 110)">
+    <rect x="0" y="0" width="160" height="44" rx="8" fill="#1e3a8a" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="80" y="27" fill="#bfdbfe" font-size="13" font-weight="700" text-anchor="middle">💳 Transaction Svc</text>
+    <line x1="80" y1="44" x2="80" y2="810" stroke="#1d4ed8" stroke-width="1.5" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- 4. Account Service -->
+  <g transform="translate(580, 110)">
+    <rect x="0" y="0" width="150" height="44" rx="8" fill="#164e63" stroke="#06b6d4" stroke-width="1.5"/>
+    <text x="75" y="27" fill="#cffafe" font-size="13" font-weight="700" text-anchor="middle">🏦 Account Svc</text>
+    <line x1="75" y1="44" x2="75" y2="810" stroke="#0e7490" stroke-width="1.5" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- 5. Kafka Broker -->
+  <g transform="translate(770, 110)">
+    <rect x="0" y="0" width="150" height="44" rx="8" fill="#7c2d12" stroke="#f97316" stroke-width="1.5"/>
+    <text x="75" y="27" fill="#fed7aa" font-size="13" font-weight="700" text-anchor="middle">📨 Kafka (9092)</text>
+    <line x1="75" y1="44" x2="75" y2="810" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- 6. Fraud Detection & Redis -->
+  <g transform="translate(960, 110)">
+    <rect x="0" y="0" width="180" height="44" rx="8" fill="#78350f" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="90" y="27" fill="#fef3c7" font-size="13" font-weight="700" text-anchor="middle">🛡️ Fraud Svc + Redis</text>
+    <line x1="90" y1="44" x2="90" y2="810" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- 7. Notification Service -->
+  <g transform="translate(1180, 110)">
+    <rect x="0" y="0" width="160" height="44" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1.5"/>
+    <text x="80" y="27" fill="#d1fae5" font-size="13" font-weight="700" text-anchor="middle">🔔 Notification Svc</text>
+    <line x1="80" y1="44" x2="80" y2="810" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,4"/>
+  </g>
+
+  <!-- ==================== FLOW SEQUENCE ARROWS ==================== -->
+
+  <!-- STEP 1: POST /transfer -->
+  <g transform="translate(0, 180)">
+    <path d="M 115 0 L 270 0" stroke="#c084fc" stroke-width="2.5" marker-end="url(#arrPurple)"/>
+    <rect x="135" y="-18" width="115" height="18" rx="4" fill="#0f172a"/>
+    <text x="192" y="-5" fill="#e9d5ff" font-size="10" font-weight="700" text-anchor="middle">1. POST /transfer</text>
+  </g>
+
+  <!-- STEP 2: Rate Limit Checked & Forwarded -->
+  <g transform="translate(0, 220)">
+    <path d="M 275 0 L 455 0" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrBlue)"/>
+    <rect x="295" y="-18" width="140" height="18" rx="4" fill="#0f172a"/>
+    <text x="365" y="-5" fill="#38bdf8" font-size="10" font-weight="700" text-anchor="middle">2. Rate Limit OK (Redis)</text>
+  </g>
+
+  <!-- STEP 3: SAGA Step 1 (Sync Feign Deduct) -->
+  <g transform="translate(0, 265)">
+    <path d="M 460 0 L 650 0" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrBlue)"/>
+    <rect x="475" y="-18" width="160" height="18" rx="4" fill="#0f172a"/>
+    <text x="555" y="-5" fill="#38bdf8" font-size="10" font-weight="700" text-anchor="middle">3. Feign: PUT /deduct (Step 1)</text>
+
+    <!-- Reply from Account Svc -->
+    <path d="M 650 25 L 465 25" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrBlue)"/>
+    <text x="555" y="38" fill="#94a3b8" font-size="9" text-anchor="middle">200 OK: Sender Balance Deducted</text>
+  </g>
+
+  <!-- STEP 4: Save PROCESSING & Emit Kafka -->
+  <g transform="translate(0, 340)">
+    <rect x="420" y="-15" width="80" height="26" rx="4" fill="#1e293b" stroke="#3b82f6" stroke-width="1"/>
+    <text x="460" y="2" fill="#bfdbfe" font-size="9" font-weight="600" text-anchor="middle">PROCESSING</text>
+
+    <path d="M 460 30 L 840 30" stroke="#fb923c" stroke-width="2.5" marker-end="url(#arrOrange)"/>
+    <rect x="520" y="12" width="260" height="18" rx="4" fill="#0f172a"/>
+    <text x="650" y="25" fill="#fb923c" font-size="10" font-weight="700" text-anchor="middle">4. Publish: 'transaction.initiated'</text>
+  </g>
+
+  <!-- STEP 5: Fraud Service Consumes & Inspects Redis -->
+  <g transform="translate(0, 410)">
+    <path d="M 845 0 L 1045 0" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arrOrange)"/>
+    <rect x="870" y="-18" width="150" height="18" rx="4" fill="#0f172a"/>
+    <text x="945" y="-5" fill="#fde68a" font-size="10" font-weight="700" text-anchor="middle">5. Consume Initiated</text>
+
+    <!-- Fraud Box Activity -->
+    <rect x="990" y="15" width="120" height="50" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="1050" y="32" fill="#fde68a" font-size="9" font-weight="700" text-anchor="middle">3 In-Memory Checks:</text>
+    <text x="1050" y="46" fill="#94a3b8" font-size="8.5" text-anchor="middle">Velocity (60s) • Moving Avg</text>
+    <text x="1050" y="58" fill="#94a3b8" font-size="8.5" text-anchor="middle">Balance Drain (&gt;90%)</text>
+  </g>
+
+  <!-- ==================== SPLIT: PATH A (CLEAN) vs PATH B (SUSPICIOUS) ==================== -->
+
+  <!-- Branch Divider Banner -->
+  <g transform="translate(80, 495)">
+    <rect x="0" y="0" width="1240" height="28" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="620" y="18" fill="#38bdf8" font-size="11" font-weight="700" letter-spacing="1" text-anchor="middle">BRANCH A: CLEAN TRANSACTION (NO FRAUD DETECTED)</text>
+  </g>
+
+  <!-- STEP 6A: Clean verdict emitted -->
+  <g transform="translate(0, 545)">
+    <path d="M 1050 0 L 850 0" stroke="#34d399" stroke-width="2.5" marker-end="url(#arrGreen)"/>
+    <rect x="875" y="-18" width="150" height="18" rx="4" fill="#0f172a"/>
+    <text x="950" y="-5" fill="#34d399" font-size="10" font-weight="700" text-anchor="middle">6A. 'fraud.check.clean'</text>
+
+    <!-- Consume Clean & Mark Completed -->
+    <path d="M 840 25 L 465 25" stroke="#34d399" stroke-width="2.5" marker-end="url(#arrGreen)"/>
+    <text x="650" y="18" fill="#a7f3d0" font-size="9.5" text-anchor="middle">Consume Clean ➔ Update Status: COMPLETED</text>
+  </g>
+
+  <!-- STEP 7A: Publish transaction.completed -->
+  <g transform="translate(0, 610)">
+    <path d="M 460 0 L 840 0" stroke="#34d399" stroke-width="2.5" marker-end="url(#arrGreen)"/>
+    <rect x="520" y="-18" width="240" height="18" rx="4" fill="#0f172a"/>
+    <text x="640" y="-5" fill="#34d399" font-size="10" font-weight="700" text-anchor="middle">7A. Publish: 'transaction.completed'</text>
+
+    <!-- Account Svc Credits Receiver -->
+    <path d="M 845 25 L 660 25" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrBlue)"/>
+    <text x="750" y="40" fill="#a5f3fc" font-size="9" text-anchor="middle">Credit Receiver Account</text>
+
+    <!-- Notification Svc Dispatches Receipts -->
+    <path d="M 850 25 L 1255 25" stroke="#10b981" stroke-width="2" marker-end="url(#arrGreen)"/>
+    <text x="1050" y="40" fill="#6ee7b7" font-size="9" text-anchor="middle">Dispatch Debit &amp; Credit Alerts</text>
+  </g>
+
+  <!-- Branch Divider Banner B -->
+  <g transform="translate(80, 675)">
+    <rect x="0" y="0" width="1240" height="28" rx="6" fill="#2c1417" stroke="#ef4444" stroke-width="1"/>
+    <text x="620" y="18" fill="#fca5a5" font-size="11" font-weight="700" letter-spacing="1" text-anchor="middle">BRANCH B: SUSPICIOUS DETECTED (OTP CHALLENGE &amp; SAGA COMPENSATING REFUND)</text>
+  </g>
+
+  <!-- STEP 6B: Verification Required & OTP in Redis -->
+  <g transform="translate(0, 725)">
+    <path d="M 1050 0 L 850 0" stroke="#ef4444" stroke-width="2" marker-end="url(#arrRed)"/>
+    <text x="950" y="-8" fill="#fca5a5" font-size="9.5" font-weight="700" text-anchor="middle">6B. 'verification.required'</text>
+
+    <path d="M 840 20 L 465 20" stroke="#ef4444" stroke-width="2" marker-end="url(#arrRed)"/>
+    <text x="650" y="12" fill="#fca5a5" font-size="9" text-anchor="middle">Generate OTP &amp; Save in Redis (TTL: 5m)</text>
+
+    <!-- Alert OTP to User -->
+    <path d="M 460 40 L 1255 40" stroke="#fb923c" stroke-width="2" marker-end="url(#arrOrange)"/>
+    <text x="850" y="55" fill="#fdba74" font-size="9" text-anchor="middle">Kafka: 'transaction.otp.generated' ➔ Notification Svc sends SMS with OTP</text>
+  </g>
+
+  <!-- STEP 7B: Wrong OTP / Expired SAGA Compensation -->
+  <g transform="translate(0, 800)">
+    <path d="M 115 0 L 455 0" stroke="#f87171" stroke-width="2" marker-end="url(#arrRed)"/>
+    <text x="280" y="-8" fill="#fca5a5" font-size="9.5" font-weight="700" text-anchor="middle">POST /verify (Wrong OTP or Expired)</text>
+
+    <!-- SAGA Compensating Call -->
+    <path d="M 460 25 L 650 25" stroke="#f87171" stroke-width="2.5" marker-end="url(#arrRed)"/>
+    <rect x="475" y="12" width="165" height="18" rx="4" fill="#0f172a"/>
+    <text x="555" y="25" fill="#fca5a5" font-size="9" font-weight="700" text-anchor="middle">SAGA COMPENSATE: Refund Sender</text>
+
+    <!-- Block Account & Alert -->
+    <path d="M 460 50 L 840 50" stroke="#f87171" stroke-width="2" marker-end="url(#arrRed)"/>
+    <text x="650" y="65" fill="#fca5a5" font-size="9" text-anchor="middle">Emit 'fraud.detected' (Account Svc Blocks Account) &amp; 'transaction.refunded'</text>
+  </g>
+
+  <!-- Bottom Legend / Note -->
+  <rect x="80" y="890" width="1240" height="45" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="100" y="917" fill="#38bdf8" font-size="11" font-weight="700">ARCHITECTURE HIGHLIGHT:</text>
+  <text x="260" y="917" fill="#e2e8f0" font-size="10.5">Dual-mode SAGA: Synchronous OpenFeign guarantees strict invariants upfront (sufficient balance) while Kafka choreographs eventual consistency, alerting, and failure compensation.</text>
+
+</svg>

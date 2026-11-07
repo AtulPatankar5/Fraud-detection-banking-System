@@ -1,0 +1,274 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 920" width="100%" height="100%" style="background:#0b1120; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="gradGateway" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="gradTxn" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="gradAcc" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </linearGradient>
+    <linearGradient id="gradFraud" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+    <linearGradient id="gradNotif" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="gradPay" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#be185d"/>
+    </linearGradient>
+    <linearGradient id="gradKafka" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+    <linearGradient id="gradRedis" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#b91c1c"/>
+    </linearGradient>
+    <linearGradient id="gradDB" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+
+    <!-- Filters -->
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <!-- Markers -->
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#38bdf8"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#fb923c"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#34d399"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#f87171"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#a78bfa"/>
+    </marker>
+  </defs>
+
+  <!-- Title Header Bar -->
+  <rect x="0" y="0" width="1400" height="90" fill="#0f172a"/>
+  <line x1="0" y1="90" x2="1400" y2="90" stroke="#1e293b" stroke-width="2"/>
+  
+  <text x="50" y="42" fill="#38bdf8" font-size="12" font-weight="700" letter-spacing="1.5">ENTERPRISE SYSTEM ARCHITECTURE • FIGMA &amp; INTERVIEW BLUEPRINT</text>
+  <text x="50" y="70" fill="#f8fafc" font-size="24" font-weight="800">Banking &amp; Real-Time Fraud Detection Microservices</text>
+  
+  <rect x="1050" y="30" width="300" height="34" rx="17" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="1200" y="52" fill="#94a3b8" font-size="12" font-weight="600" text-anchor="middle">Spring Boot 3 • Kafka • Redis • MySQL</text>
+
+  <!-- ==================== LEFT: CLIENTS & GATEWAY ==================== -->
+  
+  <!-- Client Layer -->
+  <rect x="50" y="140" width="180" height="130" rx="12" fill="#1e293b" stroke="#475569" stroke-width="1.5" filter="url(#cardShadow)"/>
+  <circle cx="90" cy="175" r="16" fill="#334155"/>
+  <text x="90" y="181" fill="#38bdf8" font-size="16" text-anchor="middle">🌐</text>
+  <text x="115" y="180" fill="#f8fafc" font-size="15" font-weight="700">Client Apps</text>
+  <text x="70" y="215" fill="#94a3b8" font-size="11.5">• Web React / Mobile UI</text>
+  <text x="70" y="235" fill="#94a3b8" font-size="11.5">• Public REST HTTP</text>
+  <text x="70" y="255" fill="#38bdf8" font-size="11" font-weight="600">Port 443 / HTTPS</text>
+
+  <!-- Arrow Client -> Gateway -->
+  <path d="M 230 205 L 290 205" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#arrowPurple)"/>
+  <text x="260" y="195" fill="#c084fc" font-size="10" font-weight="600" text-anchor="middle">HTTP REST</text>
+
+  <!-- API Gateway -->
+  <rect x="300" y="130" width="220" height="230" rx="14" fill="#1e293b" stroke="#6366f1" stroke-width="2" filter="url(#cardShadow)"/>
+  <rect x="300" y="130" width="220" height="42" rx="14" fill="url(#gradGateway)"/>
+  <text x="410" y="157" fill="#ffffff" font-size="15" font-weight="700" text-anchor="middle">API Gateway (8080)</text>
+  <text x="320" y="195" fill="#e2e8f0" font-size="11.5" font-weight="600">• Spring Cloud Gateway</text>
+  <text x="320" y="215" fill="#94a3b8" font-size="11">• Reactive WebFlux Engine</text>
+  <text x="320" y="235" fill="#94a3b8" font-size="11">• Token Bucket Rate Limiting</text>
+  <text x="320" y="255" fill="#94a3b8" font-size="11">• Client IP KeyResolver</text>
+  <rect x="320" y="275" width="180" height="26" rx="6" fill="#312e81"/>
+  <text x="410" y="292" fill="#c7d2fe" font-size="10.5" font-weight="600" text-anchor="middle">Replenish: 10/s | Burst: 20</text>
+  <text x="320" y="325" fill="#38bdf8" font-size="10.5" font-weight="600">Routes: /accounts, /transactions, /payments</text>
+
+  <!-- ==================== MIDDLE CORE: SERVICES ==================== -->
+
+  <!-- Transaction Service -->
+  <rect x="600" y="120" width="250" height="230" rx="14" fill="#1e293b" stroke="#3b82f6" stroke-width="2" filter="url(#cardShadow)"/>
+  <rect x="600" y="120" width="250" height="42" rx="14" fill="url(#gradTxn)"/>
+  <text x="725" y="147" fill="#ffffff" font-size="15" font-weight="700" text-anchor="middle">Transaction Service (8082)</text>
+  <text x="618" y="185" fill="#93c5fd" font-size="11" font-weight="700">SAGA Orchestrator &amp; Lifecycle</text>
+  <text x="618" y="205" fill="#e2e8f0" font-size="11">• POST /transactions/transfer</text>
+  <text x="618" y="225" fill="#94a3b8" font-size="11">• Sync Feign Call (Deduct)</text>
+  <text x="618" y="245" fill="#94a3b8" font-size="11">• SAGA Compensating Refund</text>
+  <text x="618" y="265" fill="#94a3b8" font-size="11">• Generates 6-Digit OTP</text>
+  <text x="618" y="285" fill="#94a3b8" font-size="11">• POST /transactions/{id}/verify</text>
+  <rect x="618" y="305" width="214" height="26" rx="6" fill="#1e3a8a"/>
+  <text x="725" y="322" fill="#bfdbfe" font-size="10" font-weight="600" text-anchor="middle">DB: b_transaction_service_db</text>
+
+  <!-- Account Service -->
+  <rect x="940" y="120" width="240" height="230" rx="14" fill="#1e293b" stroke="#06b6d4" stroke-width="2" filter="url(#cardShadow)"/>
+  <rect x="940" y="120" width="240" height="42" rx="14" fill="url(#gradAcc)"/>
+  <text x="1060" y="147" fill="#ffffff" font-size="15" font-weight="700" text-anchor="middle">Account Service (8081)</text>
+  <text x="955" y="185" fill="#a5f3fc" font-size="11" font-weight="700">Accounts &amp; Balance Management</text>
+  <text x="955" y="205" fill="#e2e8f0" font-size="11">• Account CRUD &amp; 12-digit number</text>
+  <text x="955" y="225" fill="#94a3b8" font-size="11">• PUT /{acc}/deduct (Saga Step 1)</text>
+  <text x="955" y="245" fill="#94a3b8" font-size="11">• PUT /{acc}/credit (Compensation)</text>
+  <text x="955" y="265" fill="#94a3b8" font-size="11">• PUT /{acc}/block (Freeze)</text>
+  <text x="955" y="285" fill="#94a3b8" font-size="11">• Listens: transaction.completed</text>
+  <rect x="955" y="305" width="210" height="26" rx="6" fill="#164e63"/>
+  <text x="1060" y="322" fill="#cffafe" font-size="10" font-weight="600" text-anchor="middle">DB: a_account_service_db</text>
+
+  <!-- Payment Service -->
+  <rect x="1200" y="120" width="160" height="230" rx="14" fill="#1e293b" stroke="#ec4899" stroke-width="2" filter="url(#cardShadow)"/>
+  <rect x="1200" y="120" width="160" height="42" rx="14" fill="url(#gradPay)"/>
+  <text x="1280" y="147" fill="#ffffff" font-size="13" font-weight="700" text-anchor="middle">Payment (8083)</text>
+  <text x="1210" y="185" fill="#fbcfe8" font-size="10.5" font-weight="700">Razorpay Gateway</text>
+  <text x="1210" y="205" fill="#94a3b8" font-size="10">• /create-order</text>
+  <text x="1210" y="225" fill="#94a3b8" font-size="10">• /webhook handler</text>
+  <text x="1210" y="245" fill="#94a3b8" font-size="10">• payment.captured</text>
+  <text x="1210" y="265" fill="#94a3b8" font-size="10">• payment.failed</text>
+  <rect x="1210" y="305" width="140" height="26" rx="6" fill="#831843"/>
+  <text x="1280" y="322" fill="#fce7f3" font-size="9.5" font-weight="600" text-anchor="middle">DB: c_payment_db</text>
+
+  <!-- Gateway Routes Arrows -->
+  <path d="M 520 200 L 590 200" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <path d="M 520 220 C 560 220, 560 100, 930 140" fill="none" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrowBlue)"/>
+  <path d="M 520 240 C 550 260, 560 90, 1190 140" fill="none" stroke="#ec4899" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrowBlue)"/>
+
+  <!-- Feign Sync Call: Txn -> Account -->
+  <path d="M 850 200 L 930 200" stroke="#38bdf8" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  <text x="890" y="190" fill="#38bdf8" font-size="10" font-weight="700" text-anchor="middle">Sync Feign</text>
+  <text x="890" y="215" fill="#94a3b8" font-size="9" text-anchor="middle">Deduct Balance</text>
+
+  <!-- ==================== MIDDLE ROW: KAFKA EVENT STREAMING ==================== -->
+  
+  <!-- Kafka Event Bus -->
+  <rect x="100" y="410" width="1240" height="150" rx="16" fill="#1e293b" stroke="#f97316" stroke-width="2.5" filter="url(#cardShadow)"/>
+  <rect x="100" y="410" width="1240" height="38" rx="16" fill="url(#gradKafka)"/>
+  <text x="720" y="435" fill="#ffffff" font-size="16" font-weight="800" text-anchor="middle">📨 Apache Kafka Event Backbone (Port 9092 • Zookeeper 2181)</text>
+
+  <!-- Topic Badges inside Kafka -->
+  <g transform="translate(120, 460)">
+    <!-- Topic 1 -->
+    <rect x="0" y="0" width="180" height="42" rx="8" fill="#292524" stroke="#f97316" stroke-width="1"/>
+    <text x="90" y="18" fill="#fdba74" font-size="10" font-weight="700" text-anchor="middle">transaction.initiated</text>
+    <text x="90" y="32" fill="#a8a29e" font-size="8.5" text-anchor="middle">Txn Svc ➔ Fraud Svc</text>
+
+    <!-- Topic 2 -->
+    <rect x="195" y="0" width="180" height="42" rx="8" fill="#292524" stroke="#f97316" stroke-width="1"/>
+    <text x="285" y="18" fill="#fdba74" font-size="10" font-weight="700" text-anchor="middle">fraud.check.clean</text>
+    <text x="285" y="32" fill="#a8a29e" font-size="8.5" text-anchor="middle">Fraud Svc ➔ Txn Svc</text>
+
+    <!-- Topic 3 -->
+    <rect x="390" y="0" width="180" height="42" rx="8" fill="#292524" stroke="#f97316" stroke-width="1"/>
+    <text x="480" y="18" fill="#fdba74" font-size="10" font-weight="700" text-anchor="middle">verification.required</text>
+    <text x="480" y="32" fill="#a8a29e" font-size="8.5" text-anchor="middle">Fraud Svc ➔ Txn Svc (OTP)</text>
+
+    <!-- Topic 4 -->
+    <rect x="585" y="0" width="180" height="42" rx="8" fill="#292524" stroke="#f97316" stroke-width="1"/>
+    <text x="675" y="18" fill="#fdba74" font-size="10" font-weight="700" text-anchor="middle">transaction.otp.generated</text>
+    <text x="675" y="32" fill="#a8a29e" font-size="8.5" text-anchor="middle">Txn Svc ➔ Notif Svc</text>
+
+    <!-- Topic 5 -->
+    <rect x="780" y="0" width="190" height="42" rx="8" fill="#292524" stroke="#f97316" stroke-width="1"/>
+    <text x="875" y="18" fill="#fdba74" font-size="10" font-weight="700" text-anchor="middle">transaction.completed</text>
+    <text x="875" y="32" fill="#a8a29e" font-size="8.5" text-anchor="middle">Txn Svc ➔ Account &amp; Notif</text>
+
+    <!-- Topic 6 -->
+    <rect x="985" y="0" width="195" height="42" rx="8" fill="#292524" stroke="#f97316" stroke-width="1"/>
+    <text x="1082" y="18" fill="#fdba74" font-size="10" font-weight="700" text-anchor="middle">fraud.detected / refunded</text>
+    <text x="1082" y="32" fill="#a8a29e" font-size="8.5" text-anchor="middle">Txn Svc ➔ Account Block &amp; User</text>
+  </g>
+
+  <!-- Kafka Arrow Connectors -->
+  <!-- Txn Svc -> Kafka (transaction.initiated) -->
+  <path d="M 680 350 L 680 400" stroke="#f97316" stroke-width="2.5" marker-end="url(#arrowOrange)"/>
+  <text x="660" y="380" fill="#f97316" font-size="10" font-weight="700" text-anchor="end">Publish</text>
+
+  <!-- Kafka -> Account Svc (transaction.completed) -->
+  <path d="M 1040 410 L 1040 360" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <text x="1055" y="385" fill="#38bdf8" font-size="9.5" font-weight="600">Credit Receiver</text>
+
+  <!-- Payment Svc -> Kafka -->
+  <path d="M 1270 350 L 1270 410" stroke="#ec4899" stroke-width="2" marker-end="url(#arrowOrange)"/>
+
+  <!-- ==================== BOTTOM ROW: FRAUD, REDIS, NOTIFICATIONS ==================== -->
+
+  <!-- Fraud Detection Service -->
+  <rect x="300" y="620" width="310" height="240" rx="14" fill="#1e293b" stroke="#f59e0b" stroke-width="2" filter="url(#cardShadow)"/>
+  <rect x="300" y="620" width="310" height="42" rx="14" fill="url(#gradFraud)"/>
+  <text x="455" y="647" fill="#ffffff" font-size="15" font-weight="700" text-anchor="middle">Fraud Detection Service (8084)</text>
+  <text x="318" y="685" fill="#fde68a" font-size="11" font-weight="700">Sub-Millisecond Algorithmic Rules</text>
+  <text x="318" y="705" fill="#e2e8f0" font-size="11">• Rule 1: Velocity Check (&gt; 5 tx in 60s)</text>
+  <text x="318" y="725" fill="#e2e8f0" font-size="11">• Rule 2: Spending Spike (&gt; 5x Moving Avg)</text>
+  <text x="318" y="745" fill="#e2e8f0" font-size="11">• Rule 3: Balance Drain (&gt; 90% Balance)</text>
+  <text x="318" y="770" fill="#94a3b8" font-size="10.5">Emits: 'fraud.check.clean' OR 'verification.required'</text>
+  <rect x="318" y="795" width="274" height="26" rx="6" fill="#78350f"/>
+  <text x="455" y="812" fill="#fef3c7" font-size="10" font-weight="600" text-anchor="middle">In-Memory State: Powered by Redis</text>
+
+  <!-- Redis In-Memory Engine -->
+  <rect x="650" y="620" width="360" height="240" rx="14" fill="#1e293b" stroke="#ef4444" stroke-width="2.5" filter="url(#cardShadow)"/>
+  <rect x="650" y="620" width="360" height="42" rx="14" fill="url(#gradRedis)"/>
+  <text x="830" y="647" fill="#ffffff" font-size="15" font-weight="700" text-anchor="middle">⚡ Redis In-Memory Store (Port 6379)</text>
+  
+  <rect x="668" y="675" width="324" height="34" rx="6" fill="#2d1215" stroke="#ef4444" stroke-width="1"/>
+  <text x="680" y="692" fill="#fca5a5" font-size="10.5" font-weight="700">1. fraud:velocity:{acc}</text>
+  <text x="680" y="704" fill="#94a3b8" font-size="9">Atomic INCR • 60s Sliding Window TTL</text>
+
+  <rect x="668" y="718" width="324" height="34" rx="6" fill="#2d1215" stroke="#ef4444" stroke-width="1"/>
+  <text x="680" y="735" fill="#fca5a5" font-size="10.5" font-weight="700">2. fraud.avg_amount:{acc}</text>
+  <text x="680" y="747" fill="#94a3b8" font-size="9">Historical Baseline • Moving Avg (prev + curr)/2</text>
+
+  <rect x="668" y="761" width="324" height="34" rx="6" fill="#2d1215" stroke="#ef4444" stroke-width="1"/>
+  <text x="680" y="778" fill="#fca5a5" font-size="10.5" font-weight="700">3. verification:otp{txId}</text>
+  <text x="680" y="790" fill="#94a3b8" font-size="9">6-Digit Secret OTP • 5-Minute Auto-Expiry TTL</text>
+
+  <rect x="668" y="804" width="324" height="34" rx="6" fill="#2d1215" stroke="#ef4444" stroke-width="1"/>
+  <text x="680" y="821" fill="#fca5a5" font-size="10.5" font-weight="700">4. Gateway Rate Limiter Tokens</text>
+  <text x="680" y="833" fill="#94a3b8" font-size="9">Lua script token buckets keyed by Client IP</text>
+
+  <!-- Notification Service -->
+  <rect x="1050" y="620" width="290" height="240" rx="14" fill="#1e293b" stroke="#10b981" stroke-width="2" filter="url(#cardShadow)"/>
+  <rect x="1050" y="620" width="290" height="42" rx="14" fill="url(#gradNotif)"/>
+  <text x="1195" y="647" fill="#ffffff" font-size="15" font-weight="700" text-anchor="middle">Notification Service (8085)</text>
+  <text x="1068" y="685" fill="#a7f3d0" font-size="11" font-weight="700">Omnichannel Asynchronous Hub</text>
+  <text x="1068" y="705" fill="#e2e8f0" font-size="11">• Consumes: transaction.otp.generated</text>
+  <text x="1068" y="725" fill="#e2e8f0" font-size="11">• Consumes: transaction.completed</text>
+  <text x="1068" y="745" fill="#e2e8f0" font-size="11">• Consumes: fraud.detected</text>
+  <text x="1068" y="765" fill="#e2e8f0" font-size="11">• Consumes: transaction.refunded</text>
+  <text x="1068" y="785" fill="#e2e8f0" font-size="11">• Consumes: payment.completed / failed</text>
+  <rect x="1068" y="805" width="254" height="26" rx="6" fill="#064e3b"/>
+  <text x="1195" y="822" fill="#d1fae5" font-size="10" font-weight="600" text-anchor="middle">Stateless Consumer • SMS / Email / Push</text>
+
+  <!-- Connections between Kafka and Bottom Row -->
+  <!-- Kafka -> Fraud Svc (consume transaction.initiated) -->
+  <path d="M 400 560 L 400 610" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowOrange)"/>
+  <text x="385" y="585" fill="#fde68a" font-size="9.5" text-anchor="end">Consume</text>
+
+  <!-- Fraud Svc -> Redis (Read / Write State) -->
+  <path d="M 610 700 L 640 700" stroke="#ef4444" stroke-width="2.5" marker-end="url(#arrowRed)"/>
+  
+  <!-- Txn Svc <-> Redis (Save & Verify OTP) -->
+  <path d="M 750 350 L 750 610" stroke="#ef4444" stroke-width="2" stroke-dasharray="4,4" marker-end="url(#arrowRed)"/>
+  <text x="760" y="380" fill="#fca5a5" font-size="9.5">Store / Verify OTP</text>
+
+  <!-- Gateway -> Redis (Rate limit checks) -->
+  <path d="M 370 360 C 370 480, 640 680, 640 680" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,3"/>
+
+  <!-- Kafka -> Notification Svc -->
+  <path d="M 1150 560 L 1150 610" stroke="#10b981" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <text x="1165" y="585" fill="#a7f3d0" font-size="9.5">Consume Events</text>
+
+</svg>
