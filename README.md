@@ -16,18 +16,30 @@ The system enables secure peer-to-peer fund transfers, payment gateway top-ups v
 ---
 
 ## 📑 Table of Contents
-- [System Architecture](#-system-architecture)
-- [Key Features](#-key-features)
-- [Microservices Ecosystem](#-microservices-ecosystem)
-- [Core End-to-End Flows](#-core-end-to-end-flows)
-  - [1. Happy Path Transfer](#1-happy-path-fund-transfer)
-  - [2. Fraud Detection & OTP Challenge](#2-fraud-detection--two-factor-otp-challenge)
-  - [3. SAGA Compensating Refund & Account Freeze](#3-saga-compensating-refund--account-freeze)
-- [Kafka Event Backbone & Redis Matrix](#-kafka-event-backbone--redis-matrix)
-- [Tech Stack](#-tech-stack)
-- [Getting Started](#-getting-started)
-- [API Documentation](#-api-documentation)
-- [Interview & Architecture Notes](#-interview--architecture-notes)
+- [🏦 Distributed Banking \& Real-Time Fraud Detection System](#-distributed-banking--real-time-fraud-detection-system)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [🏛️ System Architecture](#️-system-architecture)
+  - [✨ Key Features](#-key-features)
+  - [📦 Microservices Ecosystem](#-microservices-ecosystem)
+  - [🔄 Core End-to-End Flows](#-core-end-to-end-flows)
+    - [1. Happy Path Fund Transfer](#1-happy-path-fund-transfer)
+    - [2. Fraud Detection \& Two-Factor OTP Challenge](#2-fraud-detection--two-factor-otp-challenge)
+    - [3. SAGA Compensating Refund \& Account Freeze](#3-saga-compensating-refund--account-freeze)
+  - [📨 Kafka Event Backbone \& Redis Matrix](#-kafka-event-backbone--redis-matrix)
+    - [Kafka Topics Registry (Port 9092)](#kafka-topics-registry-port-9092)
+    - [Redis In-Memory Engines (Port 6379)](#redis-in-memory-engines-port-6379)
+  - [🛠️ Tech Stack](#️-tech-stack)
+  - [🚀 Getting Started](#-getting-started)
+    - [1. Prerequisites](#1-prerequisites)
+    - [2. Clone the Repository](#2-clone-the-repository)
+    - [3. Start Infrastructure via Docker Compose](#3-start-infrastructure-via-docker-compose)
+    - [4. Build and Run the Microservices](#4-build-and-run-the-microservices)
+  - [📡 API Documentation \& Sample Requests](#-api-documentation--sample-requests)
+    - [1. Create a New Bank Account](#1-create-a-new-bank-account)
+    - [2. Check Account Balance](#2-check-account-balance)
+    - [3. Initiate Peer-to-Peer Transfer (SAGA Flow)](#3-initiate-peer-to-peer-transfer-saga-flow)
+    - [4. Verify OTP (For Flagged Transactions)](#4-verify-otp-for-flagged-transactions)
+    - [5. Create Razorpay Payment Order](#5-create-razorpay-payment-order)
 
 ---
 
@@ -337,24 +349,3 @@ curl -X POST http://localhost:8080/api/v1/payments/create-order \
     "description": "Wallet top-up"
   }'
 ```
-
----
-
-## 📚 Interview & Architecture Notes
-
-Detailed system design documentation, interview cheat sheets, PowerPoint presentations, and vector diagrams are available in the **[`interview-notes/`](interview-notes/)** directory:
-
-- 📊 **[PowerPoint Slide Deck (`.pptx`)](interview-notes/Banking_System_Architecture_and_Flows.pptx)**: 8 professionally designed 16:9 widescreen presentation slides.
-- 🖼️ **[Figma Vector System Diagram (`.svg`)](interview-notes/diagrams/system_architecture_diagram.svg)**: Drag-and-drop vector diagram for Figma.
-- 🔄 **[Figma Vector Sequence Flow (`.svg`)](interview-notes/diagrams/complete_transaction_flow.svg)**: End-to-end transaction sequence.
-- 🌐 **[Interactive Web Visualizer (`.html`)](interview-notes/diagrams/interactive_architecture_viewer.html)**: Interactive browser-based architecture tool.
-- 📝 **[Services Architecture Deep Dive](interview-notes/01_SERVICES_ARCHITECTURE.md)**
-- 📝 **[End-to-End Flows with Detailed Diagrams](interview-notes/02_END_TO_END_FLOWS_WITH_DIAGRAMS.md)**
-- 📝 **[Kafka & Redis Deep Dive](interview-notes/03_KAFKA_AND_REDIS_DEEP_DIVE.md)**
-- 📝 **[SAGA Pattern & Consistency Guide](interview-notes/04_SAGA_TRANSACTIONS_AND_RESILIENCY.md)**
-- 📝 **[Top 25+ Interview Q&A & Cheat Sheet](interview-notes/05_INTERVIEW_QUESTIONS_AND_ANSWERS.md)**
-
----
-
-## 📄 License
-This project is licensed under the [MIT License](LICENSE).
