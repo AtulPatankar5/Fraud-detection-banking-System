@@ -2,12 +2,15 @@ package com.banking.accountservice.controller;
 
 import com.banking.accountservice.dto.AccountResponse;
 import com.banking.accountservice.dto.CreateAccountRequest;
+import com.banking.accountservice.response.ApiResponse;
 import com.banking.accountservice.service.AccountService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -16,46 +19,65 @@ import java.math.BigDecimal;
 @RequestMapping("/api/v1/accounts")
 @Slf4j
 @RequiredArgsConstructor
+@Validated
 public class AccountController {
 
     private final AccountService accountService;
 
     @PostMapping("/create")
-    public ResponseEntity<AccountResponse> createAccount(
+    public ResponseEntity<ApiResponse<AccountResponse>> createAccount(
             @Valid @RequestBody CreateAccountRequest request) {
 
         return ResponseEntity.status(HttpStatus.CREATED).
-                body(accountService.createAccount(request));
+                body(ApiResponse.success(
+                        "Account Created Successfully",
+                        accountService.createAccount(request)
+                ));
     }
 
     @GetMapping("/{accountNumber}")
-    public ResponseEntity<AccountResponse> getAccountByAccountNumber(
+    public ResponseEntity<ApiResponse<AccountResponse>> getAccountByAccountNumber(
             @PathVariable String accountNumber) {
 
-        return ResponseEntity.ok(accountService.getAccountByAccountNumber(accountNumber));
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Account fetched Successfully!",
+                        accountService.getAccountByAccountNumber(accountNumber)
+                ));
     }
 
     @GetMapping("/{accountNumber}/balance")
-    public ResponseEntity<BigDecimal> getBalance(
+    public ResponseEntity<ApiResponse<BigDecimal>> getBalance(
             @Valid @PathVariable String accountNumber) {
 
-        return ResponseEntity.ok(accountService.getbalance(accountNumber));
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Balance fetched successfully",
+                        accountService.getbalance(accountNumber)
+                ));
     }
 
     @PutMapping("/{accountNumber}/block")
-    public ResponseEntity<String> blockAccount(@PathVariable String accountNumber) {
+    public ResponseEntity<ApiResponse<Void>> blockAccount(@PathVariable String accountNumber) {
         accountService.blockAccount(accountNumber);
-        return ResponseEntity.ok("Account blocked");
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Account blocked",
+                        null
+                ));
     }
 
 
     //Saga Step 1 - Deduct balance
     // Called from transaction service when transfer is initiated
     @PutMapping("/{accountNumber}/deduct")
-    public ResponseEntity<String> deductBalance(@RequestParam BigDecimal amount,
-                                                @PathVariable String accountNumber) {
+    public ResponseEntity<ApiResponse<Void>> deductBalance(@RequestParam BigDecimal amount,
+                                                           @PathVariable @Positive String accountNumber) {
         accountService.deductBalance(accountNumber, amount);
-        return ResponseEntity.ok("Amount deducted Successfully");
+        return ResponseEntity.ok(ApiResponse.success(
+                "Amount deducted Successfully",
+                null)
+        );
 
     }
 
@@ -66,11 +88,16 @@ public class AccountController {
      * 2. Transaction Completed- amount Credited to Receiver
      */
     @PutMapping("/{accountNumber}/credit")
-    public ResponseEntity<String> creditBalance(@PathVariable String accountNumber,
-                                                @RequestParam BigDecimal amount) {
+    public ResponseEntity<ApiResponse<Void>> creditBalance(@PathVariable String accountNumber,
+                                                           @RequestParam @Positive BigDecimal amount) {
 
         accountService.creditBalance(accountNumber, amount);
-        return ResponseEntity.ok("Amount credited Successfully");
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "Amount credited Successfully",
+                        null
+                )
+        );
     }
 
 }
