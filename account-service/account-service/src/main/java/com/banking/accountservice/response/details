@@ -1,0 +1,15 @@
+Exception	HTTP status	Error code
+Account not found	404	ACCOUNT_NOT_FOUND
+Insufficient balance	422	INSUFFICIENT_BALANCE
+Account blocked	403	ACCOUNT_BLOCKED
+Invalid request	400	INVALID_REQUEST
+Validation failure	400	VALIDATION_FAILED
+Duplicate account	409	ACCOUNT_ALREADY_EXISTS
+Unexpected exception	500	INTERNAL_SERVER_ERROR
+
+
+Also handle Spring exceptions such as:
+- MethodArgumentNotValidException
+- HttpMessageNotReadableException
+- MethodArgumentTypeMismatchException
+- DataIntegrityViolationException

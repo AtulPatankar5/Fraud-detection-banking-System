@@ -62,7 +62,7 @@ public class FraudDetectionService {
             verificationEvent.put("amount", amount);
             verificationEvent.put("reason", result.getReason());
 
-            // send to kafka to publish
+            // send to kafka to publish and send to Transaction service for OTP generation adn storing in redis
             kafkaTemplate.send(VERIFICATION_REQUIRED_TOPIC, transactionId, verificationEvent);
 
 
@@ -72,7 +72,7 @@ public class FraudDetectionService {
             transactionCleanEvent.put("transactionId", transactionId);
             transactionCleanEvent.put("isFraud", false);
             transactionCleanEvent.put("reason", null);
-
+            // send to transaction service for clean transaction
             kafkaTemplate.send(FRAUD_CHECK_CLEAN_RESULT, transactionId, transactionCleanEvent);
         }
 
@@ -95,7 +95,7 @@ public class FraudDetectionService {
                     "-  Exceed 3X your average");
         }
 
-        //Pattern 3: Balance Check
+        //Pattern 3: Balance Check and exceeds 90% of account balance
         if (balance.compareTo(BigDecimal.ZERO) > 0 &&
                 isBalanceCheckFailed(balance, amount)) {
             return new FraudCheckResult(true, "Transaction Exceeds 90% of account balance");

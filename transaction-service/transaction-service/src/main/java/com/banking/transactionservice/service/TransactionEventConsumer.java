@@ -37,6 +37,7 @@ public class TransactionEventConsumer {
     /**
      * consumed verification.required
      * Generate OTP and ask user for verification
+     * Received from fraud detection service
      *
      * @param payload
      */

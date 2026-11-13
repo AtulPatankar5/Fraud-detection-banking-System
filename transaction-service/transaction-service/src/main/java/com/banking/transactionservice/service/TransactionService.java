@@ -82,6 +82,7 @@ public class TransactionService {
                 savedTransaction.getDescription()
         );
 
+        /// This Kafka Event will be captured by fraud Detection service for fraud Check
         kafkaTemplate.send(TRANSACTION_INITIATED_TOPIC, savedTransaction.getId(), initiatedEvent);
 
         log.info("SAGA Step 2: TransactionEvent Published ");

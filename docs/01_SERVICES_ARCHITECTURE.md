@@ -141,13 +141,22 @@ public KeyResolver userKeyResolver() {
 ### 3 Fraud Detection Algorithms:
 ```mermaid
 graph TD
-    A[Incoming Transaction Event] --> B{Rule 1: Velocity Check}
+    A[Incoming Transaction Event] --> 
+    
+    B{Rule 1: Velocity Check}
     B -->|Count > 5 in 60s| F[🚨 Flag: Velocity Limit Exceeded]
-    B -->|Pass| C{Rule 2: Amount Spikes}
+    B -->|Pass| 
+    
+    C{Rule 2: Amount Spikes}
     C -->|Amount > 5x Moving Avg| F[🚨 Flag: Unusual Transaction Amount]
-    C -->|Pass| D{Rule 3: Balance Drain}
+    C -->|Pass| 
+    
+    D{Rule 3: Balance Drain}
     D -->|Amount > 90% Account Balance| F[🚨 Flag: Exceeds 90% Balance]
-    D -->|Pass| G[✅ Emit: fraud.check.clean]
+    D -->|Pass| 
+    
+    G[✅ Emit: fraud.check.clean]
+    
     F --> H[⚠️ Emit: verification.required]
 ```
 
