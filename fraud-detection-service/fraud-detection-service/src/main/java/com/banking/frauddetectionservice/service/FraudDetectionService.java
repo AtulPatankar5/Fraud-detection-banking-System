@@ -1,10 +1,17 @@
 package com.banking.frauddetectionservice.service;
 
 import com.banking.frauddetectionservice.client.AccountServiceClient;
+import com.banking.frauddetectionservice.exception.*;
+import com.banking.frauddetectionservice.exception.customExceptions.AccountServiceException;
+import com.banking.frauddetectionservice.exception.customExceptions.FraudDetectionException;
+import com.banking.frauddetectionservice.exception.customExceptions.FraudInfrastructureException;
+import com.banking.frauddetectionservice.exception.customExceptions.InvalidFraudCheckRequestException;
 import com.banking.frauddetectionservice.model.FraudCheckResult;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -13,7 +20,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @Slf4j
@@ -38,47 +47,165 @@ public class FraudDetectionService {
     private double maxBalancePercentage;
 
 
+    private String getRequiredValue(Map<String, Object> payload, String key) {
+
+        Object value = payload.get(key);
+
+        if (value == null || value.toString().isBlank()) {
+            throw new InvalidFraudCheckRequestException(
+                    "Missing required field: " + key
+            );
+        }
+
+        return value.toString();
+    }
+
     public void checkTransaction(Map<String, Object> payload) {
-        String transactionId = (String) payload.get("transactionId");
-        String senderAccountNumber = (String) payload.get("senderAccountNumber");
-        BigDecimal amount = new BigDecimal(payload.get("amount").toString());
 
-        //fetch real balance from account service
-        BigDecimal balance = accountServiceClient.getBalance(senderAccountNumber);
+        // 1. Validate incoming Kafka payload
+        if (payload == null || payload.isEmpty()) {
+            throw new InvalidFraudCheckRequestException("Fraud check payload cannot be empty");
+        }
 
-        log.info("Checking Transaction : {} account :{}, amount: {}, balance:{}",
+        String transactionId = getRequiredValue(payload, "transactionId");
+        String senderAccountNumber = getRequiredValue(payload, "senderAccountNumber");
+
+        BigDecimal amount;
+
+        try {
+            Object amountValue = payload.get("amount");
+
+            if (amountValue == null) {
+                throw new InvalidFraudCheckRequestException("Transaction amount is required");
+            }
+
+            amount = new BigDecimal(amountValue.toString());
+
+            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new InvalidFraudCheckRequestException("Transaction amount must be greater than zero");
+            }
+
+        } catch (NumberFormatException ex) {
+            throw new InvalidFraudCheckRequestException("Invalid transaction amount");
+        }
+
+        // 2. Fetch balance from Account Service
+        BigDecimal balance;
+
+        try {
+            balance = accountServiceClient.getBalance(senderAccountNumber);
+
+            if (balance == null || balance.compareTo(BigDecimal.ZERO) < 0) {
+                throw new FraudDetectionException(
+                        "Invalid account balance received from Account Service",
+                        null
+                );
+            }
+
+        } catch (FeignException ex) {
+            log.error("Account Service call failed for account: {}", senderAccountNumber, ex);
+
+            throw new AccountServiceException(
+                    "Unable to fetch account balance",
+                    ex
+            );
+        }
+
+        log.info("Checking transaction: {}, account: {}, amount: {}, balance: {}",
                 transactionId, senderAccountNumber, amount, balance);
-        FraudCheckResult result = performFraudChecks(senderAccountNumber, amount, balance);
 
+        // 3. Perform fraud checks
+        FraudCheckResult result;
+
+        try {
+            result = performFraudChecks(senderAccountNumber, amount, balance);
+
+        } catch (DataAccessException ex) {
+            log.error("Redis operation failed during fraud check for transaction: {}",
+                    transactionId, ex);
+
+            throw new FraudInfrastructureException(
+                    ErrorCode.REDIS_OPERATION_FAILED,
+                    "Unable to perform fraud checks because Redis is unavailable",
+                    ex
+            );
+        } catch (Exception ex) {
+            log.error("Unexpected fraud detection failure for transaction: {}",
+                    transactionId, ex);
+
+            throw new FraudDetectionException(
+                    "Fraud detection processing failed",
+                    ex
+            );
+        }
+
+        // 4. Publish the appropriate event
         if (result.isFraud()) {
-            log.info("Suspicious Activity Detected in account {}" +
-                            " and reason: {} - requesting OTP verification",
+
+            log.info("Suspicious activity detected for account: {}, reason: {}",
                     senderAccountNumber, result.getReason());
 
-            // Verification Required to be triggered to user to check whether it is you. Send OTP to user
             Map<String, Object> verificationEvent = new HashMap<>();
             verificationEvent.put("transactionId", transactionId);
             verificationEvent.put("senderAccountNumber", senderAccountNumber);
             verificationEvent.put("amount", amount);
             verificationEvent.put("reason", result.getReason());
 
-            // send to kafka to publish and send to Transaction service for OTP generation adn storing in redis
-            kafkaTemplate.send(VERIFICATION_REQUIRED_TOPIC, transactionId, verificationEvent);
-
+            publishEvent(VERIFICATION_REQUIRED_TOPIC, transactionId, verificationEvent);
 
         } else {
-            log.info("Transaction is clean");
+
+            log.info("Transaction {} passed fraud checks", transactionId);
+
             Map<String, Object> transactionCleanEvent = new HashMap<>();
             transactionCleanEvent.put("transactionId", transactionId);
             transactionCleanEvent.put("isFraud", false);
             transactionCleanEvent.put("reason", null);
-            // send to transaction service for clean transaction
-            kafkaTemplate.send(FRAUD_CHECK_CLEAN_RESULT, transactionId, transactionCleanEvent);
+
+            publishEvent(FRAUD_CHECK_CLEAN_RESULT, transactionId, transactionCleanEvent);
         }
-
-
     }
 
+
+    private void publishEvent(String topic, String key, Object event) {
+
+        try {
+            kafkaTemplate.send(topic, key, event)
+                    .get(10, TimeUnit.SECONDS);
+
+            log.info("Successfully published event to topic: {}, key: {}", topic, key);
+
+        } catch (InterruptedException ex) {
+
+            Thread.currentThread().interrupt();
+
+            throw new FraudInfrastructureException(
+                    ErrorCode.KAFKA_PUBLISH_FAILED,
+                    "Kafka event publishing was interrupted",
+                    ex
+            );
+
+        } catch (ExecutionException | TimeoutException ex) {
+
+            log.error("Failed to publish event to topic: {}, key: {}", topic, key, ex);
+
+            throw new FraudInfrastructureException(
+                    ErrorCode.KAFKA_PUBLISH_FAILED,
+                    "Unable to publish event to Kafka topic: " + topic,
+                    ex
+            );
+
+        } catch (Exception ex) {
+
+            log.error("Unexpected Kafka publishing error for topic: {}", topic, ex);
+
+            throw new FraudInfrastructureException(
+                    ErrorCode.KAFKA_PUBLISH_FAILED,
+                    "Unexpected error while publishing Kafka event",
+                    ex
+            );
+        }
+    }
     private FraudCheckResult performFraudChecks(String accountNumber,
                                                 BigDecimal amount,
                                                 BigDecimal balance) {

@@ -1,9 +1,8 @@
 package com.banking.transactionservice.service;
 
-import com.banking.transactionservice.dto.TransactionResponse;
 import com.banking.transactionservice.entity.Transaction;
 import com.banking.transactionservice.entity.TransactionStatus;
-import com.banking.transactionservice.exception.TransactionNotFoundException;
+import com.banking.transactionservice.exception.customExceptions.TransactionNotFoundException;
 import com.banking.transactionservice.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +12,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;

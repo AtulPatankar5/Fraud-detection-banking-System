@@ -8,15 +8,13 @@ import com.banking.transactionservice.entity.TransactionStatus;
 import com.banking.transactionservice.entity.TransactionType;
 import com.banking.transactionservice.event.TransactionCompletedEvent;
 import com.banking.transactionservice.event.TransactionInitiatedEvent;
-import com.banking.transactionservice.exception.TransactionNotFoundException;
+import com.banking.transactionservice.exception.customExceptions.TransactionNotFoundException;
 import com.banking.transactionservice.repository.TransactionRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
