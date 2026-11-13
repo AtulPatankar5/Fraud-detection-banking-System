@@ -1,5 +1,6 @@
 package com.banking.transactionservice.client;
 
+import jakarta.validation.constraints.Positive;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,11 +16,11 @@ import java.math.BigDecimal;
 public interface AccountServiceClient {
 
     @PutMapping("/api/v1/accounts/{accountNumber}/deduct")
-    String deductBalance(@RequestParam BigDecimal amount, @PathVariable String accountNumber);
+    String deductBalance( @RequestParam  @Positive BigDecimal amount, @PathVariable String accountNumber);
 
 
     @PutMapping("/api/v1/accounts/{accountNumber}/credit")
-    String creditBalance(@PathVariable String accountNumber, @RequestParam BigDecimal amount);
+    String creditBalance(@PathVariable String accountNumber, @RequestParam  @Positive BigDecimal amount);
 
 
 }

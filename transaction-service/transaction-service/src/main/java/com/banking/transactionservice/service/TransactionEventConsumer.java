@@ -3,6 +3,7 @@ package com.banking.transactionservice.service;
 import com.banking.transactionservice.dto.TransactionResponse;
 import com.banking.transactionservice.entity.Transaction;
 import com.banking.transactionservice.entity.TransactionStatus;
+import com.banking.transactionservice.exception.TransactionNotFoundException;
 import com.banking.transactionservice.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,7 @@ public class TransactionEventConsumer {
 
             log.info("Verification required  - Transaction {} and reason {}", transactionId, reason);
 
-            Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(() -> new RuntimeException("Transaction not found : " + transactionId));
+            Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(() -> new TransactionNotFoundException("Transaction not found : " + transactionId));
 
 
             //Idempotency- ensure that transaction is not sent to receiver or sender twice.

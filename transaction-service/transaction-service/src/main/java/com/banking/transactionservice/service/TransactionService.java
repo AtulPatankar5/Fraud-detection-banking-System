@@ -8,6 +8,7 @@ import com.banking.transactionservice.entity.TransactionStatus;
 import com.banking.transactionservice.entity.TransactionType;
 import com.banking.transactionservice.event.TransactionCompletedEvent;
 import com.banking.transactionservice.event.TransactionInitiatedEvent;
+import com.banking.transactionservice.exception.TransactionNotFoundException;
 import com.banking.transactionservice.repository.TransactionRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -109,8 +110,7 @@ public class TransactionService {
 
 
     public TransactionResponse getTransaction(String transactionId) {
-        return mapToResponse(transactionRepository.findById(transactionId).orElseThrow(
-                () -> new RuntimeException("No transaction found with id " + transactionId)));
+        return mapToResponse(getTransactionOrThrow(transactionId));
     }
 
     public List<TransactionResponse> getTransactionHistory(String accountNumber) {
@@ -124,8 +124,7 @@ public class TransactionService {
     public TransactionResponse verifyOtp(String transactionId, String otp) {
 
         log.info("Verify OTP request for transaction {}", transactionId);
-        Transaction transaction = transactionRepository.findById(transactionId).
-                orElseThrow(() -> new RuntimeException("No transaction found with id " + transactionId));
+        Transaction transaction = getTransactionOrThrow(transactionId);
 
         String otpKey = "verification:otp" + transactionId;
         String storedOtp = redisTemplate.opsForValue().get(otpKey);
@@ -225,8 +224,7 @@ public class TransactionService {
     }
 
     public void processCleanResult(String transactionId) {
-        Transaction transaction = transactionRepository.findById(transactionId).
-                orElseThrow(() -> new RuntimeException("No transaction found with id " + transactionId));
+        Transaction transaction = getTransactionOrThrow(transactionId);
 
         //Idempotency- ensure that transaction is not sent to receiver or sender twice.
         if (transaction.getStatus() != TransactionStatus.PROCESSING) {
@@ -237,5 +235,13 @@ public class TransactionService {
         completeTransaction(transaction);
 
 
+    }
+
+    private Transaction getTransactionOrThrow(String transactionId) {
+
+        return transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new TransactionNotFoundException(
+                        "Transaction not found with id: " + transactionId
+                ));
     }
 }

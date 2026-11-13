@@ -71,8 +71,8 @@ public class AccountController {
     //Saga Step 1 - Deduct balance
     // Called from transaction service when transfer is initiated
     @PutMapping("/{accountNumber}/deduct")
-    public ResponseEntity<ApiResponse<Void>> deductBalance(@RequestParam BigDecimal amount,
-                                                           @PathVariable @Positive String accountNumber) {
+    public ResponseEntity<ApiResponse<Void>> deductBalance(@RequestParam @Positive BigDecimal amount,
+                                                           @PathVariable String accountNumber) {
         accountService.deductBalance(accountNumber, amount);
         return ResponseEntity.ok(ApiResponse.success(
                 "Amount deducted Successfully",
