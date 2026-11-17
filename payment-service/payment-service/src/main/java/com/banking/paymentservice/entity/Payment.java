@@ -20,6 +20,7 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(unique = true)
     private String razorpayOrderId;
     private String razorpayPaymentId;
 
