@@ -78,7 +78,6 @@ public class PaymentService {
     private static final String PAYMENT_COMPLETED_TOPIC = "payment.completed";
     private static final String PAYMENT_FAILED_TOPIC = "payment.failed";
 
-
     /**
      * Create RazorPay payment order
      * <p>
@@ -146,7 +145,7 @@ public class PaymentService {
             // 2. Save Payment record in DB
             /**
              *
-             /*
+             * /*
              * STEP 3: SAVE RAZORPAY ORDER DETAILS
              *
              * After Razorpay successfully creates the order,
@@ -217,8 +216,7 @@ public class PaymentService {
         if (eventId == null || eventId.isBlank()) {
             throw new BusinessException(
                     ErrorCode.WEBHOOK_EVENT_INVALID,
-                    "Webhook event ID is missing"
-            );
+                    "Webhook event ID is missing");
         }
 
         try {
@@ -231,8 +229,7 @@ public class PaymentService {
             if (eventType == null || eventType.isBlank()) {
                 throw new BusinessException(
                         ErrorCode.WEBHOOK_EVENT_INVALID,
-                        "Webhook event type is missing"
-                );
+                        "Webhook event type is missing");
             }
 
             // 3. Check duplicate event
@@ -247,10 +244,9 @@ public class PaymentService {
             webhookEvent.setEventId(eventId);
             webhookEvent.setEventType(eventType);
             webhookEvent.setRawPayload(
-                    new String(rawBody, StandardCharsets.UTF_8)
-            );
+                    new String(rawBody, StandardCharsets.UTF_8));
 
-//          once payment completed then mark the event status as received;
+            // once payment completed then mark the event status as received;
             webhookEvent.setStatus(WebhookEventStatus.RECEIVED);
             webhookEvent.setAttempts(0);
 
@@ -259,18 +255,15 @@ public class PaymentService {
             log.info(
                     "Webhook event persisted successfully. Event ID: {}, Type: {}",
                     eventId,
-                    eventType
-            );
+                    eventType);
 
         } catch (JacksonException exception) {
 
             throw new BusinessException(
                     ErrorCode.WEBHOOK_EVENT_INVALID,
-                    "Invalid webhook JSON payload"
-            );
+                    "Invalid webhook JSON payload");
         }
     }
-
 
     /**
      * Fetch the webhook event.
@@ -291,8 +284,7 @@ public class PaymentService {
                 .findById(webhookEventId)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.WEBHOOK_EVENT_INVALID,
-                        "Webhook event not found: " + webhookEventId
-                ));
+                        "Webhook event not found: " + webhookEventId));
 
         // 2. Idempotency: Do not process an already processed event
         if (webhookEvent.getStatus() == WebhookEventStatus.PROCESSED) {
@@ -305,8 +297,7 @@ public class PaymentService {
 
             // 3. Parse stored webhook JSON
             JsonNode root = objectMapper.readTree(
-                    webhookEvent.getRawPayload()
-            );
+                    webhookEvent.getRawPayload());
 
             String eventType = webhookEvent.getEventType();
 
@@ -318,8 +309,7 @@ public class PaymentService {
             if (paymentEntity.isMissingNode() || !paymentEntity.isObject()) {
                 throw new BusinessException(
                         ErrorCode.WEBHOOK_EVENT_INVALID,
-                        "Payment details missing from webhook"
-                );
+                        "Payment details missing from webhook");
             }
 
             String orderId = paymentEntity.path("order_id").asText(null);
@@ -328,8 +318,7 @@ public class PaymentService {
             if (orderId == null || orderId.isBlank()) {
                 throw new BusinessException(
                         ErrorCode.WEBHOOK_EVENT_INVALID,
-                        "Razorpay order ID missing from webhook"
-                );
+                        "Razorpay order ID missing from webhook");
             }
 
             // 5. Find corresponding payment
@@ -337,8 +326,7 @@ public class PaymentService {
                     .findByRazorpayOrderId(orderId)
                     .orElseThrow(() -> new BusinessException(
                             ErrorCode.PAYMENT_NOT_FOUND,
-                            "Payment not found for Razorpay order ID: " + orderId
-                    ));
+                            "Payment not found for Razorpay order ID: " + orderId));
 
             // 6. Prepare Kafka event
             Map<String, Object> kafkaEvent = new HashMap<>();
@@ -346,6 +334,9 @@ public class PaymentService {
             kafkaEvent.put("paymentId", payment.getId());
             kafkaEvent.put("accountNumber", payment.getAccountNumber());
             kafkaEvent.put("amount", payment.getAmount());
+            kafkaEvent.put(
+                    "eventId",
+                    "webhook:" + webhookEvent.getEventId());
 
             String topic;
 
@@ -377,8 +368,7 @@ public class PaymentService {
 
                     log.info(
                             "Ignoring failed event because payment is already completed: {}",
-                            payment.getId()
-                    );
+                            payment.getId());
 
                     webhookEvent.setStatus(WebhookEventStatus.PROCESSED);
                     webhookEvent.setProcessedAt(Instant.now());
@@ -431,15 +421,13 @@ public class PaymentService {
             log.info(
                     "Webhook processed successfully. Event ID: {}, Payment ID: {}",
                     webhookEvent.getEventId(),
-                    payment.getId()
-            );
+                    payment.getId());
 
         } catch (JacksonException exception) {
 
             throw new BusinessException(
                     ErrorCode.WEBHOOK_EVENT_INVALID,
-                    "Unable to parse stored webhook payload"
-            );
+                    "Unable to parse stored webhook payload");
         }
     }
 

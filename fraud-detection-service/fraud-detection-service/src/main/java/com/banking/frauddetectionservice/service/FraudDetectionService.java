@@ -7,6 +7,7 @@ import com.banking.frauddetectionservice.exception.customExceptions.FraudDetecti
 import com.banking.frauddetectionservice.exception.customExceptions.FraudInfrastructureException;
 import com.banking.frauddetectionservice.exception.customExceptions.InvalidFraudCheckRequestException;
 import com.banking.frauddetectionservice.model.FraudCheckResult;
+import com.banking.frauddetectionservice.response.ApiResponse;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -91,11 +92,22 @@ public class FraudDetectionService {
 
         // 2. Fetch balance from Account Service
         BigDecimal balance;
-
         try {
-            balance = accountServiceClient.getBalance(senderAccountNumber);
 
-            if (balance == null || balance.compareTo(BigDecimal.ZERO) < 0) {
+            ApiResponse<BigDecimal> response = accountServiceClient.getBalance(senderAccountNumber);
+
+            if (response == null || !response.success() || response.data() == null) {
+
+                throw new AccountServiceException(
+                        "Unable to retrieve account balance from Account Service",
+                        null
+                );
+            }
+
+            balance = response.data();
+
+            if (balance.compareTo(BigDecimal.ZERO) < 0) {
+
                 throw new FraudDetectionException(
                         "Invalid account balance received from Account Service",
                         null
@@ -103,7 +115,12 @@ public class FraudDetectionService {
             }
 
         } catch (FeignException ex) {
-            log.error("Account Service call failed for account: {}", senderAccountNumber, ex);
+
+            log.error(
+                    "Account Service call failed for account: {}",
+                    senderAccountNumber,
+                    ex
+            );
 
             throw new AccountServiceException(
                     "Unable to fetch account balance",
@@ -206,6 +223,7 @@ public class FraudDetectionService {
             );
         }
     }
+
     private FraudCheckResult performFraudChecks(String accountNumber,
                                                 BigDecimal amount,
                                                 BigDecimal balance) {

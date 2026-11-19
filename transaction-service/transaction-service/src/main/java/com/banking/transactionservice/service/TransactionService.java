@@ -1,6 +1,7 @@
 package com.banking.transactionservice.service;
 
 import com.banking.transactionservice.client.AccountServiceClient;
+import com.banking.transactionservice.dto.AccountResponse;
 import com.banking.transactionservice.dto.TransactionResponse;
 import com.banking.transactionservice.dto.TransferRequest;
 import com.banking.transactionservice.entity.Transaction;
@@ -49,30 +50,59 @@ public class TransactionService {
      * @param transferRequest
      * @return
      */
+
     public TransactionResponse transfer(TransferRequest transferRequest) {
 
-        log.info("SAGA Starts - Transfer from {} -> {} and  amount {}",
+        log.info("SAGA Starts - Transfer from {} -> {} and amount {}",
                 transferRequest.getSenderAccountNumber(),
                 transferRequest.getReceiverAccountNumber(),
                 transferRequest.getAmount());
 
-        //SAGA Step1: Deduct from Sender
-        accountServiceClient.deductBalance(transferRequest.getAmount(), transferRequest.getSenderAccountNumber());
+        // Step 1: Fetch sender account details
+        AccountResponse senderAccount = accountServiceClient
+                .getAccountDetails(transferRequest.getSenderAccountNumber())
+                .data();
 
-        // Save transaction as processing
+        if (senderAccount == null || senderAccount.getEmail() == null
+                || senderAccount.getEmail().isBlank()) {
+            throw new IllegalStateException(
+                    "Sender account email is not available");
+        }
+
+        // Step 2: Deduct balance from sender
+        accountServiceClient.deductBalance(
+                transferRequest.getAmount(),
+                transferRequest.getSenderAccountNumber()
+        );
+
+        // Step 3: Create transaction
         Transaction transaction = new Transaction();
-        transaction.setSenderAccountNumber(transferRequest.getSenderAccountNumber());
-        transaction.setReceiverAccountNumber(transferRequest.getReceiverAccountNumber());
+
+        transaction.setSenderAccountNumber(
+                transferRequest.getSenderAccountNumber());
+
+        transaction.setReceiverAccountNumber(
+                transferRequest.getReceiverAccountNumber());
+
+        transaction.setEmail(senderAccount.getEmail());
+
         transaction.setAmount(transferRequest.getAmount());
+
         transaction.setType(TransactionType.TRANSFER);
+
         transaction.setStatus(TransactionStatus.PROCESSING);
+
         transaction.setDescription(transferRequest.getDescription());
+
         transaction.setReferenceNumber(UUID.randomUUID().toString());
+
+        // Step 4: Save transaction
         Transaction savedTransaction = transactionRepository.save(transaction);
-        log.info("Transaction saved as Processing , {}", savedTransaction.getId());
 
+        log.info("Transaction saved as Processing, {}",
+                savedTransaction.getId());
 
-//       SAGA Step 2:  publish event to kafka for fraud check
+        // Step 5: Publish transaction initiated event
         TransactionInitiatedEvent initiatedEvent = new TransactionInitiatedEvent(
                 savedTransaction.getId(),
                 savedTransaction.getSenderAccountNumber(),
@@ -81,10 +111,14 @@ public class TransactionService {
                 savedTransaction.getDescription()
         );
 
-        /// This Kafka Event will be captured by fraud Detection service for fraud Check
-        kafkaTemplate.send(TRANSACTION_INITIATED_TOPIC, savedTransaction.getId(), initiatedEvent);
+        kafkaTemplate.send(
+                TRANSACTION_INITIATED_TOPIC,
+                savedTransaction.getId(),
+                initiatedEvent
+        );
 
-        log.info("SAGA Step 2: TransactionEvent Published ");
+        log.info("SAGA Step 2: TransactionEvent Published");
+
         return mapToResponse(savedTransaction);
     }
 
@@ -106,14 +140,12 @@ public class TransactionService {
 
     }
 
-
     public TransactionResponse getTransaction(String transactionId) {
         return mapToResponse(getTransactionOrThrow(transactionId));
     }
 
     public List<TransactionResponse> getTransactionHistory(String accountNumber) {
-        return transactionRepository.
-                findBySenderAccountNumberOrderByCreatedAtDesc(accountNumber)
+        return transactionRepository.findBySenderAccountNumberOrderByCreatedAtDesc(accountNumber)
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -164,22 +196,27 @@ public class TransactionService {
         completedEvent.setDescription(transaction.getDescription());
         completedEvent.setReceiverAccountNumber(transaction.getReceiverAccountNumber());
         completedEvent.setSenderAccountNumber(transaction.getSenderAccountNumber());
+        completedEvent.setEmail(transaction.getEmail());
 
+        // Stable event ID for notification idempotency
+        completedEvent.setEventId(
+                "transaction.completed:" + transaction.getId());
         kafkaTemplate.send(TRANSACTION_COMPLETED_TOPIC, transaction.getId(), completedEvent);
 
-
         log.info("SAGA Completed -  Transaction {} completed", transaction.getId());
-
 
     }
 
     private void blockAccountAndCompensate(Transaction transaction, String reason) {
 
-        //PUBLISH fraud.detected --> Accoutn service will block account
+        // PUBLISH fraud.detected --> Accoutn service will block account
         Map<String, Object> fraudEvent = new HashMap<>();
         fraudEvent.put("transactionId", transaction.getId());
         fraudEvent.put("senderAccountNumber", transaction.getSenderAccountNumber());
         fraudEvent.put("reason", reason);
+        fraudEvent.put(
+                "eventId",
+                "fraud.detected:" + transaction.getId());
 
         // send to account service to block the user
         kafkaTemplate.send(FRAUD_DETECTED_TOPIC, transaction.getSenderAccountNumber(), fraudEvent);
@@ -190,7 +227,6 @@ public class TransactionService {
         // SAGA Compensation and refund sender
         compensateTransaction(transaction, reason);
 
-
     }
 
     private void compensateTransaction(Transaction transaction, String reason) {
@@ -198,9 +234,15 @@ public class TransactionService {
         log.warn("SAGA COMPENSATE. Refunding : {} and amount {}",
                 transaction.getSenderAccountNumber(), transaction.getAmount());
 
-        // FEIGN Client: call account service microservice to credit back balance for refund-
+        // FEIGN Client: call account service microservice to credit back balance for
+        // refund-
         accountServiceClient.creditBalance(transaction.getSenderAccountNumber(), transaction.getAmount());
+        AccountResponse senderAccount =
+                accountServiceClient.getAccountDetails(
+                        transaction.getSenderAccountNumber()
+                ).data();
 
+        String senderEmail = senderAccount.getEmail();
         transaction.setStatus(TransactionStatus.FLAGGED);
         transaction.setFailureReason(reason +
                 "- SAGA Compensation executed, amount refunded at  " + LocalDateTime.now());
@@ -213,18 +255,22 @@ public class TransactionService {
         refundEvent.put("senderAccountNumber", transaction.getSenderAccountNumber());
         refundEvent.put("refundAmount", transaction.getAmount());
         refundEvent.put("reason", reason);
+        refundEvent.put(
+                "eventId",
+                "transaction.refunded:" + transaction.getId());
+        refundEvent.put("email", senderEmail);
 
         // send to notification service to notify user for refund
         kafkaTemplate.send(TRANSACTION_REFUNDED_TOPIC, transaction.getId(), refundEvent);
-
-        log.info("SAGA Compensation completed - {} refunded to {} ", transaction.getAmount(), transaction.getSenderAccountNumber());
+        log.info("SAGA Compensation completed - {} refunded to {} ", transaction.getAmount(),
+                transaction.getSenderAccountNumber());
 
     }
 
     public void processCleanResult(String transactionId) {
         Transaction transaction = getTransactionOrThrow(transactionId);
 
-        //Idempotency- ensure that transaction is not sent to receiver or sender twice.
+        // Idempotency- ensure that transaction is not sent to receiver or sender twice.
         if (transaction.getStatus() != TransactionStatus.PROCESSING) {
             log.warn("Transaction  {} not processing. Skipping ", transactionId);
             return;
@@ -232,14 +278,12 @@ public class TransactionService {
 
         completeTransaction(transaction);
 
-
     }
 
     private Transaction getTransactionOrThrow(String transactionId) {
 
         return transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new TransactionNotFoundException(
-                        "Transaction not found with id: " + transactionId
-                ));
+                        "Transaction not found with id: " + transactionId));
     }
 }

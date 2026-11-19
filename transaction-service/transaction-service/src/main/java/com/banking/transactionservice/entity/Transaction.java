@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,6 +26,9 @@ public class Transaction {
 
     @Column(nullable = false)
     private String receiverAccountNumber;
+
+    @Column(nullable = false)
+    private String email;
 
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;

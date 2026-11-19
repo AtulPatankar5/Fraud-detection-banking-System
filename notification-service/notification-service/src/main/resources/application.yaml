@@ -1,32 +1,66 @@
 spring:
   application:
     name: notification-service
+
+  # MySQL Database Configuration
+  datasource:
+    url: jdbc:mysql://localhost:3306/d_notification_service_db?createDatabaseIfNotExist=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA / Hibernate Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Kafka Configuration
   kafka:
     bootstrap-servers: localhost:9092
 
     consumer:
       group-id: notification-service-group
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      enable-auto-commit: false
+
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+
       properties:
-        spring:
-          json:
-            trusted:
-              packages: "com.banking"
-            use:
-              type:
-                headers: false
-            value:
-              default:
-                type: java.util.HashMap
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+
+        spring.json.trusted.packages: "com.banking"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: java.util.HashMap
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
 server:
   port: 8085
+services:
+  account-service:
+    url: http://localhost:8081
 
 management:
   endpoints:

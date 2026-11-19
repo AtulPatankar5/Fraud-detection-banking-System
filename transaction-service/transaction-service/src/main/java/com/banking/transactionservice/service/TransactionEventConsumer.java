@@ -1,9 +1,13 @@
 package com.banking.transactionservice.service;
 
+import com.banking.transactionservice.client.AccountServiceClient;
+import com.banking.transactionservice.dto.AccountResponse;
 import com.banking.transactionservice.entity.Transaction;
 import com.banking.transactionservice.entity.TransactionStatus;
 import com.banking.transactionservice.exception.customExceptions.TransactionNotFoundException;
 import com.banking.transactionservice.repository.TransactionRepository;
+import com.banking.transactionservice.response.ApiResponse;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,6 +37,8 @@ public class TransactionEventConsumer {
 
     private final TransactionService transactionService;
 
+    private final AccountServiceClient accountServiceClient;
+
     /**
      * consumed verification.required
      * Generate OTP and ask user for verification
@@ -45,31 +51,46 @@ public class TransactionEventConsumer {
     public void consumerVerificationRequired(@Payload Map<String, Object> payload) {
         try {
             String transactionId = (String) payload.get("transactionId");
-            String accountNumber = (String) payload.get("accountNumber");
+            String accountNumber = (String) payload.get("senderAccountNumber");
             String reason = (String) payload.get("reason");
 
             log.info("Verification required  - Transaction {} and reason {}", transactionId, reason);
 
-            Transaction transaction = transactionRepository.findById(transactionId).orElseThrow(() -> new TransactionNotFoundException("Transaction not found : " + transactionId));
+            Transaction transaction = transactionRepository.findById(transactionId)
+                    .orElseThrow(() -> new TransactionNotFoundException("Transaction not found : " + transactionId));
 
-
-            //Idempotency- ensure that transaction is not sent to receiver or sender twice.
+            // Idempotency- ensure that transaction is not sent to receiver or sender twice.
             // Also send OTP only when transaction is at processing state
             if (transaction.getStatus() != TransactionStatus.PROCESSING) {
                 log.warn("Transaction  {} not processing. Skipping ", transactionId);
                 return;
             }
 
+            // Fetch customer email from Account Service
+            ApiResponse<AccountResponse> accountResponse = accountServiceClient.getAccountDetails(accountNumber);
+
+            if (accountResponse == null
+                    || !accountResponse.success()
+                    || accountResponse.data() == null
+                    || accountResponse.data().getEmail() == null
+                    || accountResponse.data().getEmail().isBlank()) {
+
+                throw new IllegalStateException(
+                        "Customer email not found for account: " + accountNumber);
+            }
+
+            String email = accountResponse.data().getEmail();
+
             // Generate 6 digit OTP
-//            Example: `Math.random()` generates `0.45678` → Multiply by `900000` → `411102` → Add `100000` → `511102` (6-digit OTP).
+            // Example: `Math.random()` generates `0.45678` → Multiply by `900000` →
+            // `411102` → Add `100000` → `511102` (6-digit OTP).
             String otp = String.format("%06d", (int) (Math.random() * 900000 + 100000));
 
-            //Store OTP in Redis - expires in 5 minutes
+            // Store OTP in Redis - expires in 5 minutes
             String otpKey = "verification:otp" + transactionId;
             redisTemplate.opsForValue().set(otpKey, otp, OTP_EXPIRY_MINUTES, TimeUnit.MINUTES);
 
-
-            //Update Status  from processing to pending verification
+            // Update Status from processing to pending verification
             transaction.setStatus(TransactionStatus.PENDING_VERIFICATION);
             transactionRepository.save(transaction);
 
@@ -80,18 +101,23 @@ public class TransactionEventConsumer {
             Map<String, Object> otpEvent = new HashMap<>();
             otpEvent.put("transactionId", transactionId);
             otpEvent.put("accountNumber", accountNumber);
+            otpEvent.put("email", email);
             otpEvent.put("reason", reason);
             otpEvent.put("otp", otp);
             otpEvent.put("amount", payload.get("amount"));
+            otpEvent.put(
+                    "eventId",
+                    "transaction.otp.generated:" + transactionId);
 
             // Kafka Event send to Notification service for OTP
             kafkaTemplate.send(TRANSACTION_OTP_GENERATE_TOPIC, transactionId, otpEvent);
 
-
         } catch (Exception e) {
-            log.error("Error handling verification required :{}  ", e.getMessage());
+            log.error(
+                    "Error handling verification required for transaction",
+                    e);
+            throw e;
         }
-
     }
 
     @KafkaListener(topics = "fraud.check.clean")
@@ -102,8 +128,10 @@ public class TransactionEventConsumer {
             transactionService.processCleanResult(transactionId);
 
         } catch (Exception e) {
-            log.error("Error Processing fraud check result: {}", e.getMessage());
+            log.error(
+                    "Error handling verification required for transaction",
+                    e);
+            throw e;
         }
-
     }
 }

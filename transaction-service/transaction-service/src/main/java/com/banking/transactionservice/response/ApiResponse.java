@@ -2,6 +2,7 @@ package com.banking.transactionservice.response;
 
 
 import com.banking.transactionservice.exception.ErrorCode;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.Instant;
 
@@ -22,6 +23,7 @@ import java.time.Instant;
  * @param timestamp
  * @param <T>
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record ApiResponse<T>(
         boolean success,
         String message,

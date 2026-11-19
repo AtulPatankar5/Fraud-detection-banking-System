@@ -1,5 +1,6 @@
 package com.banking.frauddetectionservice.client;
 
+import com.banking.frauddetectionservice.response.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,5 +12,5 @@ import java.math.BigDecimal;
 public interface AccountServiceClient {
 
     @GetMapping("/api/v1/accounts/{accountNumber}/balance")
-    BigDecimal getBalance(@Valid @PathVariable String accountNumber);
+    ApiResponse<BigDecimal> getBalance(@Valid @PathVariable String accountNumber);
 }
