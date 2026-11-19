@@ -1,0 +1,8 @@
+TO DO for payment and notification:
+Priority	Task						Status
+1		Payment Service producer + Outbox		Substantially complete
+2		Payment Kafka consumer in Notification Service	Verify / implement
+3		Consumer retry and DLT				Implement / verify
+4		Consumer idempotency				Implement
+5		Payment end-to-end integration testing		Pending
+6		Security and JWT				Upcoming

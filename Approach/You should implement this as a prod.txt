@@ -1,0 +1,520 @@
+You should implement this as a production-style banking fraud detection project, one feature at a time—not add all these technologies together.
+
+I recommend following this order so that every feature builds on a working foundation. We'll first secure the backend, then add reliable OTP and payment workflows, then build the React frontend, and finally test and deploy the complete system.
+
+Your existing project already has a foundation with Spring Boot 4.0.0, Java 17, API Gateway, Account Service, Transaction Service, Redis and Kafka. You also have a Redis-based transaction velocity check in the fraud logic. We'll preserve that architecture and improve it rather than start again.
+
+## 1. Recommended implementation roadmap
+
+We'll divide the work into 12 phases. Each phase should be completed and tested before moving to the next.
+
+## Fraud Detection Project Roadmap
+
+1. Phase 1 — Backend foundation
+
+   Global exception handling, common API response, HTTP status codes and error scenarios.
+
+   Start here
+2. Phase 2 — Spring Security
+
+   Security configuration, authentication and authorization, role-based access control.
+3. Phase 3 — JWT authentication
+
+   Access token, refresh token, token validation, refresh rotation, logout and revocation.
+4. Phase 4 — Password security
+
+   BCrypt password hashing, password validation, registration and login.
+5. Phase 5 — CORS
+
+   Configure cross-origin requests for React and the API Gateway.
+6. Phase 6 — OTP and notifications
+
+   OTP generation, email via SMTP, SMS provider integration, expiry, resend cooldown and attempt limits.
+7. Phase 7 — Payload integrity
+
+   Hashing, HMAC signatures, request integrity verification and replay protection.
+8. Phase 8 — Razorpay integration
+
+   Create orders, checkout, payment signature verification, webhook handling and failed payments.
+9. Phase 9 — React frontend
+
+   Login, registration, dashboard, account, transaction, fraud alerts, OTP and payment screens.
+10. Phase 10 — Docker
+
+    Dockerfiles, Docker Compose, service networking, environment variables and persistent storage.
+11. Phase 11 — JMeter performance testing
+
+    Load testing, stress testing, throughput, response time and bottleneck analysis.
+12. Phase 12 — Deployment
+
+    Deploy backend, frontend, databases, Redis and Kafka; configure HTTPS, monitoring and production secrets.
+
+## 2. What exactly will we implement in each phase?
+
+### Phase 1: Global exception handling and standard API responses
+
+First, every service should return a consistent response structure.
+
+For example, a successful response:
+
+```
+{
+  "success": true,
+  "message": "Transaction completed",
+  "data": {
+    "transactionId": "TXN101",
+    "amount": 1500.50,
+    "status": "COMPLETED"
+  },
+  "timestamp": "2026-11-12T10:30:00",
+  "path": "/api/v1/transactions"
+}
+```
+
+Failed response:
+
+```
+{
+  "success": false,
+  "message": "Insufficient account balance",
+  "errorCode": "INSUFFICIENT_BALANCE",
+  "timestamp": "2026-11-12T10:30:00",
+  "path": "/api/v1/transactions"
+}
+```
+
+We will implement:
+
+- `GlobalExceptionHandler`
+- `@RestControllerAdvice`
+- Custom exceptions
+- Common `ApiResponse<T>` class
+- Validation error handling
+- Proper HTTP status codes
+- Correlation ID for tracing requests across microservices
+
+Example exception classes:
+
+```
+InsufficientBalanceException
+AccountNotFoundException
+TransactionNotFoundException
+InvalidOtpException
+OtpExpiredException
+FraudDetectedException
+PaymentFailedException
+```
+
+### Phase 2: Spring Security
+
+We will secure the microservices.
+
+| Component              | Responsibility           |
+| ---------------------- | ------------------------ |
+| SecurityConfig         | Configure security rules |
+| UserDetailsService     | Load user details        |
+| PasswordEncoder        | Verify passwords         |
+| AuthenticationProvider | Authenticate credentials |
+| SecurityFilterChain    | Define request security  |
+| Authorization          | Control user permissions |
+
+Roles we can implement:
+
+- `CUSTOMER`
+- `ADMIN`
+- `FRAUD_ANALYST`
+
+Example:
+
+```
+CUSTOMER      → Own accounts and transactions
+ADMIN         → Manage users and accounts
+FRAUD_ANALYST → View suspicious transactions
+```
+
+We will also decide how service-to-service communication is authenticated, rather than relying only on gateway security.
+
+### Phase 3: JWT access and refresh tokens
+
+[Access and Refresh Tokens in Token-Based Authentication - DEV Community](https://images.openai.com/static-rsc-4/I6bFs00mGhqd7R3QCsuOWxNUNc4QI3T94nMMxK-iAoa1BdBHfqWDVcFDoQF-Y2Aa6RbDJ9ummkHRpGw3PMRZwuLpbxUN806pjCsEHx5rNi2eQks2Ou8S6i7yA3CZEIQod0O_6wtTQBTypD2BkI3rVcxzD9eXMzIe3Glg-jsda0c?purpose=inline)
+
+[dev.to](https://dev.to/khaledsaeed18/access-and-refresh-tokens-in-token-based-authentication-2a9o?utm_source=chatgpt.com)
+
+We will implement:
+
+| Token         | Purpose                   | Example lifetime |
+| ------------- | ------------------------- | ---------------- |
+| Access token  | Authorize API requests    | 15 minutes       |
+| Refresh token | Obtain a new access token | 7 days           |
+
+These are example lifetimes, not mandatory values.
+
+Implementation flow:
+
+1. User logs in.
+2. Backend validates credentials.
+3. Generate access token.
+4. Generate refresh token.
+5. Store a hashed refresh token or token-family record.
+6. Client sends access token with API requests.
+7. When access token expires, client uses refresh token.
+8. Backend validates it and rotates the refresh token.
+9. Logout revokes the refresh token.
+
+Important: We will implement refresh-token rotation, reuse detection and revocation.
+
+### Phase 4: Password hashing
+
+Use BCrypt through Spring Security.
+
+```
+@Bean
+PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+}
+```
+
+Registration:
+
+```
+String encodedPassword =
+        passwordEncoder.encode(request.getPassword());
+```
+
+Login:
+
+```
+boolean valid =
+        passwordEncoder.matches(
+            request.getPassword(),
+            user.getPassword()
+        );
+```
+
+Important distinction: Passwords should be hashed, not reversibly encrypted. BCrypt is a one-way password-hashing algorithm.
+
+### Phase 5: CORS configuration
+
+Your React application and backend may run on different origins.
+
+For example:
+
+```
+React       → localhost:5173
+API Gateway → localhost:8080
+```
+
+The browser enforces CORS rules.
+
+We will configure:
+
+- Allowed origins
+- Allowed HTTP methods
+- Allowed headers
+- Authorization header
+- Credentials if required
+- OPTIONS preflight requests
+
+Configure this consistently at the gateway, avoiding conflicting CORS configurations across services.
+
+### Phase 6: OTP, SMTP, SMS and attempt limits
+
+[Your OTP Code Isn’t Stored or Expiring: It’s Just Math | by Pawan Kalyan | Mar, 2026 | Medium](https://images.openai.com/static-rsc-4/QuaZXn7RDz8nHQfi6eg371CXfd5bRWyVPnURtyV9vzQfQzo-KfXfbLSAgXym6Nqem7iN96MNKVkdSJs02dR4PkFPFcxHi0eflYaevWS-j4B4MBAHi5qPGyYTCSiLplYWJh_JsulA1e7hiRN9ZOAB1tU3V0FZyMGTWCEeGsCvESg?purpose=inline)
+
+[hekerboi.medium.com](https://hekerboi.medium.com/your-otp-code-isnt-stored-or-expiring-it-s-just-math-1e18d1222c15?utm_source=chatgpt.com)
+
+We will implement the following:
+
+| Feature          | Implementation                   |
+| ---------------- | -------------------------------- |
+| OTP generation   | SecureRandom                     |
+| OTP storage      | Redis                            |
+| OTP expiration   | 5 minutes                        |
+| Email            | JavaMailSender / SMTP            |
+| SMS              | SMS provider API                 |
+| OTP attempts     | Redis counter                    |
+| Resend cooldown  | Redis TTL                        |
+| Maximum attempts | Example: 5                       |
+| Lockout          | Temporary OTP verification block |
+
+Example configuration:
+
+```
+otp:
+  expiry: 300
+  max-attempts: 5
+  resend-cooldown: 60
+```
+
+We will also implement atomic attempt counting in Redis, so simultaneous requests cannot bypass the attempt limit.
+
+Do not store OTPs in plain text in production. Store a protected representation and compare securely.
+
+### Phase 7: Payload hashing and integrity
+
+This needs special attention.
+
+We should distinguish three concepts:
+
+| Concept           | Purpose                                              |
+| ----------------- | ---------------------------------------------------- |
+| Hashing           | Create a one-way digest of data                      |
+| HMAC              | Verify integrity and authenticity using a secret key |
+| Digital signature | Verify integrity and the identity of the signer      |
+
+For example, if a payment request contains:
+
+```
+{
+  "transactionId": "TXN101",
+  "amount": 1500.50,
+  "accountNumber": "123456789"
+}
+```
+
+We can use HMAC-SHA256 to authenticate the request payload between trusted systems.
+
+We should also add:
+
+- Timestamp validation
+- Nonce or idempotency key
+- Replay attack prevention
+- Canonical JSON serialization
+
+A plain SHA-256 hash alone does not prove who created the payload.
+
+### Phase 8: Razorpay testing
+
+[help.sharkdom.com](https://help.sharkdom.com/tracking-your-payouts/razorpay-tracking/setup-webhook-in-razorpay?utm_source=chatgpt.com)
+
+Implementation order:
+
+1. Create Razorpay test account.
+2. Configure test API credentials.
+3. Backend creates Razorpay order.
+4. React opens Razorpay Checkout.
+5. User completes or cancels payment.
+6. Backend verifies checkout signature.
+7. Backend processes payment webhook.
+8. Update payment status.
+9. Publish Kafka event.
+10. Send notification.
+
+We will test:
+
+- Successful payment
+- Failed payment
+- Cancelled payment
+- Duplicate webhook
+- Invalid signature
+- Webhook timeout
+- Payment captured but application temporarily unavailable
+
+Important: Never trust only the frontend's payment-success callback. Verify signatures on the backend and process webhooks idempotently.
+
+### Phase 9: React frontend
+
+We will build the UI after backend APIs and security contracts are stable.
+
+[Finovus - Onboarding by Barly Design for Uxerflow on Dribbble](https://images.openai.com/static-rsc-4/_vViMcNzCH0Z5B--_PFGI56ZIu_5RVb3wuff0CGrl4JfpJ-vTRvuT3U3TxyJlWJB3sgqaXEy2kpUJLSkTyyRUFSflULgkFMjpBj1bOySKZfW9RFOc8TTzMXNTFsJPIo47NOCjf7JU2SR1q-vkIf0w7SFGX7PUsEHc9bmtCkV1C0?purpose=inline)
+
+Authentication
+
+Login, register, OTP, refresh token
+
+[Swahilies Company Limited](https://images.openai.com/static-rsc-4/EsHtjVrDqLImKZOIvCWCq0cN7Db2DZR-PPpBCNRNHFRnc_d3dLjlsSYlC3o51NqZ4HV4ReSp1Aw9epXMrjI79QCu3eu1hrW5FURIejCBQhqwQ7-hFDYgPCPkCZh-u2qf01p5bG5W_8pOHXqpMoiFeyB3uK7Y2Y2yZIQGcQCcBLs?purpose=inline)
+
+Customer dashboard
+
+Accounts, balances, transactions
+
+[Finopia: Smart Financial Dashboard UI by Kyaw Thu on Dribbble](https://images.openai.com/static-rsc-4/Q3-NDZOlZkyGrlqggbj7PJpE9_sicQXQLmj_C-9rEV7-wMtAHDn0DvAmFzZnOjweA5rrZ-8BbsDuC7yelAO6jyC7aRPuMjsIU6mQ4dNtFiEwe-BoaMLCSoJCjniBHORHKh5V3QTu3BbuvLYxaDrTR7FekyWJ03ISNkLZ4W0q6_I?purpose=inline)
+
+Transactions
+
+Transfer money, history, payment
+
+[SaaS Fraud Detection Dashboard by Yuliya Lebedeva on Dribbble](https://images.openai.com/static-rsc-4/em2ojPP79l0JnVg-qMA97c4-mMzedHe6E0FC-1vSyY0VTOayrz3Om5MhofVciju8jkSpUhvnjA7khJdiYVRREWITmWbsN8yBGqz2Oc4ODl4AjU8fHErqblHR8J6eU7N_I3zgCu1GWSUWS6IYP45YHQdI2lYsSTQWs-HJuNTGHkY?purpose=inline)
+
+Fraud dashboard
+
+Suspicious activity and alerts
+
+Suggested frontend stack:
+
+- React + TypeScript
+- Vite
+- React Router
+- Axios
+- Redux Toolkit or Context API
+- Tailwind CSS
+
+### Phase 10: Docker
+
+We will containerize the complete application.
+
+```
+banking-fraud-system/
+│
+├── api-gateway/
+├── account-service/
+├── transaction-service/
+├── fraud-detection-service/
+├── notification-service/
+├── payment-service/
+├── frontend/
+│
+├── docker-compose.yml
+└── README.md
+```
+
+Docker Compose will manage:
+
+- API Gateway
+- Account Service
+- Transaction Service
+- Fraud Detection Service
+- Notification Service
+- Payment Service
+- Redis
+- Kafka
+- MySQL
+- React frontend
+
+We will configure health checks, service dependencies, persistent volumes and environment variables.
+
+### Phase 11: JMeter performance testing
+
+[Poor Man's Guide to Load Testing AEM / Adobe CQ — Gaston Gonzalez](https://images.openai.com/static-rsc-4/xE2D3Mj7g3h0JWUOop1oDJvU8RO2YPE4Xt1QoUbOyigRyoMas1UTwmMqtZo59kR6ZL9MciSgK9X-0RlxKJn6IG6qV8WNXzlBRgit0ZNVL8BjF7Q82gOMd3wrFx7gQV5IpeW4iGHsLGTmH95XWuOSTzfYfCwnrclwT60nbRit1fE?purpose=inline)
+
+[gastongonzalez.com](https://www.gastongonzalez.com/tech-blog/2013/11/17/aem-adobe-cq-load-testing?utm_source=chatgpt.com)
+
+We will test:
+
+| Test           | What it checks                    |
+| -------------- | --------------------------------- |
+| Load test      | Expected concurrent users         |
+| Stress test    | Breaking point of the application |
+| Spike test     | Sudden increase in requests       |
+| Endurance test | Stability over longer periods     |
+
+Example initial test:
+
+```
+Virtual users: 100
+Ramp-up: 30 seconds
+Loop count: 10
+Endpoint: POST /api/v1/transactions
+```
+
+We will measure:
+
+- Average response time
+- 95th percentile response time
+- Throughput
+- Error percentage
+- CPU and memory utilization
+
+Use test accounts and isolated test data. Never run load tests against live banking or payment systems without authorization.
+
+### Phase 12: Deployment
+
+We'll deploy in this order:
+
+1. Backend services
+2. Redis and Kafka
+3. Databases
+4. API Gateway
+5. React frontend
+6. HTTPS and domain
+7. Logging and monitoring
+
+We can use AWS as the deployment platform and decide between a simpler container deployment and Kubernetes based on the project's requirements.
+
+## 3. Failure scenarios we must cover
+
+This is especially important for a fraud detection project. We should test failure behavior, not just successful requests.
+
+| Scenario                  | Expected behavior                                                 |
+| ------------------------- | ----------------------------------------------------------------- |
+| Invalid password          | `401 UNAUTHORIZED`                                                |
+| Expired access token      | `401 UNAUTHORIZED`                                                |
+| Invalid refresh token     | Reject and revoke token family where appropriate                  |
+| Account not found         | `404 NOT FOUND`                                                   |
+| Insufficient balance      | `422 UNPROCESSABLE ENTITY`                                        |
+| Invalid OTP               | Increment attempts and reject                                     |
+| OTP expired               | Reject and initiate the defined recovery flow                     |
+| OTP attempts exceeded     | Temporarily block verification                                    |
+| Fraud detected            | Flag or hold transaction according to business rules              |
+| Redis unavailable         | Apply a defined fail-closed or fail-open security policy          |
+| Kafka unavailable         | Avoid losing committed business events; use retry/outbox strategy |
+| Payment failed            | Mark payment failed and reconcile status                          |
+| Duplicate payment webhook | Process idempotently                                              |
+| Database unavailable      | Return controlled `503 SERVICE UNAVAILABLE`                       |
+
+For fund transfers, we will also test partial failures: sender debited but receiver not credited, duplicate transfer requests, timeout after successful processing, and refund failures. These require idempotency and Saga compensation.
+
+## 4. How we will work: one phase at a time
+
+My suggestion is to follow this exact development workflow for every feature:
+
+## Implementation cycle
+
+1. Understand the concept and architecture.
+2. Identify which microservice needs changes.
+3. Design the classes, DTOs and database changes.
+4. Implement production-quality code.
+5. Test successful and failed scenarios.
+6. Verify API responses using Postman.
+7. Update README and architecture documentation.
+8. Move to the next phase only after validation.
+
+## 5. Let's start with Phase 1
+
+Before writing code, I want to establish your current project structure so we don't duplicate existing implementations.
+
+Current project baseline
+
+Confirm or correct these details before we begin implementation.
+
+API Gateway type
+
+WebFlux / Reactive
+
+Spring MVC
+
+Both / Not sure
+
+Database
+
+MySQL
+
+PostgreSQL
+
+Both
+
+Spring Security / JWT status
+
+Not implemented
+
+Partially implemented
+
+Already implemented
+
+Project files
+
+I can share the project files / pom.xml
+
+I'll share code snippets
+
+Start with architecture only
+
+Start Phase 1
+
+One important technical note: Your earlier gateway setup had both WebMVC and WebFlux dependencies. We should verify and resolve that before implementing gateway security, because Spring Cloud Gateway's reactive and MVC configurations are different.
+
+We can build this into a strong portfolio project with proper backend architecture, security, failure handling, testing and deployment—not just a collection of technologies.
+
+If you'd like a weekly progress check-in while you implement the phases, you can set one up here:
+
+Weekly fraud project progress check-in

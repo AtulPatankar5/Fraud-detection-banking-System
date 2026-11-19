@@ -1,0 +1,6 @@
+Next improvement: Notification reliability
+I recommend implementing the following next:
+1. Admin security: Protect the recovery API using Spring Security and admin roles.
+2. DLT audit tracking: Store failed event ID, topic, exception, retry information and recovery status in MySQL.
+3. Automatic recovery controls: Prevent accidental repeated manual recovery.
+4. Email/SMS integration: Replace the current log-based sendAlert() simulator with an actual notification provider

@@ -1,0 +1,25 @@
+TO DO:
+
+spring security
+jwt- access and refresh
+SMTP - sms email sending
+react
+docker 
+deploy
+Global Exception Handling
+Response of Each Failed Response
+CORS filter
+password Encryption
+Hashing of payload 
+load tester tool-  Jmeter
+OTP attempts add
+razor pay testing
+
+Error handling for failed scenario
+
+add multithreading 
+add check whether that account is present for transfer
+
+Kafka retry and DLT handling separately.- Exception handling 
+
+
